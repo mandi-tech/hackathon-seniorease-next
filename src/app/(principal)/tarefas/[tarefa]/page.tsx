@@ -1,7 +1,9 @@
+import DadosTarefa from "@/src/components/features/tarefas/dadosTarefa";
+
 export default function TarefaPage() {
   return (
     <div>
-      <h1>Análise tarefa</h1>
+      <DadosTarefa />
     </div>
   );
 }
