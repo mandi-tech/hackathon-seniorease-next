@@ -14,7 +14,6 @@ const atkinson = Atkinson_Hyperlegible_Next({
   adjustFontFallback: false,
 });
 
-
 export const metadata: Metadata = {
   title: "SeniorEase",
   description: "Facilitando o dia a dia do idoso",
@@ -26,24 +25,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="pt-br"
-      className={`${atkinson.variable}  h-full antialiased`}
-    >
+    <html lang="pt-br" className={`${atkinson.variable}  h-full antialiased`}>
       <head>
         <style dangerouslySetInnerHTML={{ __html: getDynamicThemeStyles() }} />
       </head>
       <AntdThemeProvider>
-      <body className="min-h-full flex flex-col">
-        <Navbar />
-        <section className="flex justify-center w-full mt-8">
-          <div className="w-[90%] xl:w-[80%] mb-10">
-            {children}
-          </div>
-        </section>
-      </body>
+        <body className="min-h-full flex flex-col">
+          <Navbar />
+          <section className="flex justify-center w-full mt-8">
+            <div className="w-[90%] xl:w-[80%] mb-8">{children}</div>
+          </section>
+        </body>
       </AntdThemeProvider>
-
     </html>
   );
 }
