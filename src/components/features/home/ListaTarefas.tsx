@@ -1,7 +1,6 @@
 "use client";
 
-import { BookOutlined, ClockCircleOutlined } from "@ant-design/icons";
-import { Button } from "antd";
+import { ClockCircleOutlined } from "@ant-design/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
@@ -110,7 +109,7 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
           )}
         </div>
 
-        <ModalTarefa />
+        <ModalTarefa tipo="tarefa" />
       </div>
     </section>
   );

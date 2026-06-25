@@ -5,7 +5,11 @@ import { UploadOutlined } from "@ant-design/icons";
 import { Button, DatePicker, Form, Input, Modal, Select, Upload } from "antd";
 import { useState } from "react";
 
-export default function ModalTarefa() {
+export interface iModalTarefaProps {
+  tipo: "tarefa" | "subtarefa";
+}
+
+export default function ModalTarefa({ tipo }: iModalTarefaProps) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -14,14 +18,14 @@ export default function ModalTarefa() {
         onClick={() => {
           setOpen(true);
         }}
-        className="text-titulo3! "
+        className="text-titulo3! text-fundo!"
         size="large"
       >
-        + Adicionar tarefa
+        + Adicionar {tipo}
       </Button>
 
       <Modal
-        title="Adicionar Tarefa"
+        title={`Adicionar ${tipo}`}
         open={open}
         onOk={() => setOpen(false)}
         onCancel={() => setOpen(false)}
