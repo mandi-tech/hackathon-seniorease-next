@@ -4,11 +4,19 @@ import React, { useEffect, useState } from "react";
 import { ConfigProvider, theme as antdTheme } from "antd";
 import type { ThemeConfig } from "antd";
 import ptBR from "antd/locale/pt_BR";
-import { paletaClara, paletaEscura, paletaAltoContraste } from "@/src/styles/theme";
+import {
+  paletaClara,
+  paletaEscura,
+  paletaAltoContraste,
+} from "@/src/styles/theme";
 
 type ThemeMode = "light" | "dark" | "high-contrast";
 
-export default function AntdThemeProvider({ children }: { children: React.ReactNode }) {
+export default function AntdThemeProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [mounted, setMounted] = useState(false);
 
@@ -16,9 +24,14 @@ export default function AntdThemeProvider({ children }: { children: React.ReactN
     setMounted(true);
 
     const checkTheme = () => {
-      const isHighContrastAttr = document.documentElement.getAttribute("data-contrast") === "high";
-      const prefersContrast = window.matchMedia("(prefers-contrast: more)").matches;
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const isHighContrastAttr =
+        document.documentElement.getAttribute("data-contrast") === "high";
+      const prefersContrast = window.matchMedia(
+        "(prefers-contrast: more)",
+      ).matches;
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
 
       if (isHighContrastAttr || prefersContrast) {
         setThemeMode("high-contrast");
@@ -72,7 +85,6 @@ export default function AntdThemeProvider({ children }: { children: React.ReactN
           components: {
             Calendar: {
               fullBg: " transparent",
-              
             },
           },
         };
@@ -115,7 +127,10 @@ export default function AntdThemeProvider({ children }: { children: React.ReactN
   };
 
   return (
-    <ConfigProvider locale={ptBR} theme={getThemeConfig(mounted ? themeMode : "light")}>
+    <ConfigProvider
+      locale={ptBR}
+      theme={getThemeConfig(mounted ? themeMode : "light")}
+    >
       {children}
     </ConfigProvider>
   );
