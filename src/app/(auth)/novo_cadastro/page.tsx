@@ -1,7 +1,5 @@
+import FormNovoCadastro from "@/src/components/features/login/formNovoCadastro";
+
 export default function NovoCadastroPage() {
-  return (
-    <div>
-      <h1>Novo Cadastro</h1>
-    </div>
-  );
+  return <FormNovoCadastro />;
 }
