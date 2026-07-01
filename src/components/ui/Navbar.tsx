@@ -7,7 +7,7 @@ export default function Navbar() {
         <h1 className="text-2xl font-bold text-primaria">SeniorEase</h1>
 
         <div className="flex gap-8 items-center">
-          <Link href="/configuracoes">Configurações</Link>
+          <Link href="/acessibilidade">Configurações</Link>
           <Link href="/login">Logout</Link>
           <div className="flex gap-2 items-center text-paragrafo">
             <Avatar>U</Avatar>
