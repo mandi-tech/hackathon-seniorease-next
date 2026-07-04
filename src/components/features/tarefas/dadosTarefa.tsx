@@ -15,6 +15,7 @@ import {
 } from "@/src/libs/types/iTarefa";
 import { listaStatus } from "@/src/libs/mocks/tarefas";
 import ModalTarefa from "./modalTarefa";
+import { Pencil, Trash2 } from "lucide-react";
 
 export default function DadosTarefa() {
   const router = useRouter();
@@ -130,13 +131,28 @@ export default function DadosTarefa() {
               Subtarefa de: {tarefaOriginal.titulo}
             </span>
           )}
-          <h1 className="text-secundaria text-titulo1 font-bold leading-tight">
-            {itemExibido.titulo}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-secundaria text-titulo1 font-bold leading-tight">
+              {itemExibido.titulo}
+            </h1>
+            <Tag
+              style={{
+                backgroundColor: `${statusInfo?.color}15`,
+                color: statusInfo?.color,
+                borderColor: statusInfo?.color,
+                fontSize: "var(--text-paragrafo)",
+                padding: "4px 12px",
+                borderRadius: "6px",
+                fontWeight: "bold",
+              }}
+            >
+              {statusInfo?.label}
+            </Tag>
+          </div>
+
           <div className="flex flex-wrap gap-4 mt-2 text-texto-secundaria text-paragrafo">
             <span className="flex items-center gap-1">
               <CalendarOutlined /> {tarefaOriginal.data}{" "}
-              {/* Mantém a data do pai */}
             </span>
             <span className="flex items-center gap-1">
               <ClockCircleOutlined /> {itemExibido.hora}
@@ -144,19 +160,25 @@ export default function DadosTarefa() {
           </div>
         </div>
 
-        <Tag
-          style={{
-            backgroundColor: `${statusInfo?.color}15`,
-            color: statusInfo?.color,
-            borderColor: statusInfo?.color,
-            fontSize: "var(--text-paragrafo)",
-            padding: "4px 12px",
-            borderRadius: "6px",
-            fontWeight: "bold",
-          }}
-        >
-          {statusInfo?.label}
-        </Tag>
+        <div className="flex gap-3">
+          <Button
+            className="bg-primaria! text-white"
+            size="large"
+            type="primary"
+            icon={<Pencil size={22} />}
+          >
+            Editar
+          </Button>
+          <Button
+            className="text-white"
+            size="large"
+            type="primary"
+            danger
+            icon={<Trash2 size={22} />}
+          >
+            Excluir
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-6">
