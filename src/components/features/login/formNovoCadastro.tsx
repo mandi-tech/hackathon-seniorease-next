@@ -1,15 +1,34 @@
 "use client";
 
-import { Button, Divider, Form, Input } from "antd";
+import { Button, Divider, Form, Input, message } from "antd";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { useState } from "react";
 
 export default function FormNovoCadastro() {
   const [form] = Form.useForm();
   const router = useRouter();
+  const { signUp } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const onFinish = (values: any) => {
-    console.log("Success:", values);
-    router.push("/login");
+  const onFinish = async (values: any) => {
+    setLoading(true);
+    const { nome, email, senha } = values;
+
+    try {
+      const result = await signUp(email, senha, nome);
+      if (result.success) {
+        message.success("Cadastro realizado com sucesso! Faça seu login.");
+        router.push("/login");
+      } else {
+        message.error(result.error || "Ocorreu um erro ao realizar o cadastro.");
+      }
+    } catch (err) {
+      console.error("Erro no cadastro:", err);
+      message.error("Ocorreu um erro ao criar a conta. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onFinishFailed = (errorInfo: any) => {
@@ -29,16 +48,19 @@ export default function FormNovoCadastro() {
         <Form.Item
           label="Nome"
           name="nome"
-          rules={[{ required: true, message: "Nome inválido" }]}
+          rules={[{ required: true, message: "Por favor, digite seu nome!" }]}
         >
-          <Input type="text" size="large" />
+          <Input type="text" size="large" placeholder="Digite seu nome completo" />
         </Form.Item>
         <Form.Item
           label="Email"
           name="email"
-          rules={[{ required: true, message: "Email inválido", type: "email" }]}
+          rules={[
+            { required: true, message: "Por favor, digite seu e-mail!" },
+            { type: "email", message: "Insira um e-mail válido!" }
+          ]}
         >
-          <Input type="email" size="large" />
+          <Input type="email" size="large" placeholder="nome@exemplo.com" />
         </Form.Item>
 
         <Divider className="bg-texto/10" />
@@ -46,16 +68,30 @@ export default function FormNovoCadastro() {
         <Form.Item
           label="Senha"
           name="senha"
-          rules={[{ required: true, message: "Senha inválida" }]}
+          rules={[
+            { required: true, message: "Por favor, digite sua senha!" },
+            { min: 6, message: "A senha deve ter no mínimo 6 caracteres!" }
+          ]}
         >
-          <Input type="password" size="large" />
+          <Input.Password size="large" placeholder="Crie uma senha forte (mín. 6 caracteres)" />
         </Form.Item>
         <Form.Item
           label="Confirmação de Senha"
           name="confirmacaoSenha"
-          rules={[{ required: true, message: "Confirmação de senha inválida" }]}
+          dependencies={["senha"]}
+          rules={[
+            { required: true, message: "Confirmação de senha obrigatória!" },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue("senha") === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error("As senhas não coincidem!"));
+              },
+            }),
+          ]}
         >
-          <Input type="password" size="large" />
+          <Input.Password size="large" placeholder="Confirme sua senha" />
         </Form.Item>
 
         <Button
@@ -63,6 +99,7 @@ export default function FormNovoCadastro() {
           htmlType="submit"
           size="large"
           className="w-full! mx-auto!"
+          loading={loading}
         >
           Cadastrar
         </Button>
@@ -70,3 +107,4 @@ export default function FormNovoCadastro() {
     </section>
   );
 }
+

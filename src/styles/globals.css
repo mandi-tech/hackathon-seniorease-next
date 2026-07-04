@@ -41,3 +41,48 @@ body {
   font-size: var(--theme-paragrafo);
   transition: background-color 0.2s ease, color 0.2s ease, font-size 0.2s ease;
 }
+
+/* ==========================================
+   ACESSSIBILIDADE - ESTILOS DINÂMICOS
+   ========================================== */
+
+/* Espaçamento Amplo (Acessibilidade) */
+html[data-spacing="wide"] button,
+html[data-spacing="wide"] .ant-btn {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  height: auto !important;
+  min-height: 48px !important; /* Tamanho de toque mínimo recomendado para idosos */
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+html[data-spacing="wide"] input,
+html[data-spacing="wide"] .ant-input,
+html[data-spacing="wide"] .ant-input-affix-wrapper {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+html[data-spacing="wide"] .ant-form-item {
+  margin-bottom: 2rem !important;
+}
+
+/* Feedback Visual Reforçado */
+html[data-visual-feedback="high"] *:focus,
+html[data-visual-feedback="high"] *:focus-visible,
+html[data-visual-feedback="high"] .ant-btn:focus,
+html[data-visual-feedback="high"] .ant-input:focus,
+html[data-visual-feedback="high"] .ant-input-affix-wrapper-focus {
+  outline: 4px solid var(--theme-primaria) !important;
+  outline-offset: 2px !important;
+}
+
+html[data-visual-feedback="high"] button:hover,
+html[data-visual-feedback="high"] .ant-btn:hover,
+html[data-visual-feedback="high"] a:hover {
+  transform: scale(1.02);
+  transition: transform 0.15s ease-in-out;
+}
+

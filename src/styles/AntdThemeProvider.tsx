@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ConfigProvider, theme as antdTheme } from "antd";
+import { App, ConfigProvider, theme as antdTheme } from "antd";
 import type { ThemeConfig } from "antd";
 import ptBR from "antd/locale/pt_BR";
 import {
@@ -131,7 +131,7 @@ export default function AntdThemeProvider({
       locale={ptBR}
       theme={getThemeConfig(mounted ? themeMode : "light")}
     >
-      {children}
+      <App>{children}</App>
     </ConfigProvider>
   );
 }
