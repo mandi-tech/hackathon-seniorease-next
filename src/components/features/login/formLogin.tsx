@@ -2,13 +2,11 @@
 
 import { Button, Form, Input, message } from "antd";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useState } from "react";
 
 export default function FormLogin() {
   const [form] = Form.useForm();
-  const router = useRouter();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +18,7 @@ export default function FormLogin() {
       const result = await signIn(email, senha);
       if (result.success) {
         message.success("Login realizado com sucesso!");
-        router.push("/");
+        // O redirect é feito pelo signIn() no AuthContext (para /acessibilidade ou /)
       } else {
         message.error(result.error || "E-mail ou senha incorretos.");
       }

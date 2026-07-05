@@ -28,10 +28,19 @@ interface AuthContextType {
   profile: Profile | null;
   preferences: UserPreferences | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  signUp: (
+    email: string,
+    password: string,
+    name: string,
+  ) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
-  updatePreferences: (prefs: Partial<UserPreferences>) => Promise<{ success: boolean; error?: string }>;
+  updatePreferences: (
+    prefs: Partial<UserPreferences>,
+  ) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -99,7 +108,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Carrega os dados do usuário, perfil e preferências (com auto-criação se estiverem ausentes)
-  const loadUserData = async (currUser: any): Promise<UserPreferences | null> => {
+  const loadUserData = async (
+    currUser: any,
+  ): Promise<UserPreferences | null> => {
     try {
       if (!currUser) {
         setUser(null);
@@ -130,7 +141,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .from("profiles")
           .insert({
             id: currUser.id,
-            name: currUser.user_metadata?.name || currUser.user_metadata?.nome || "Usuário SeniorEase",
+            name:
+              currUser.user_metadata?.name ||
+              currUser.user_metadata?.nome ||
+              "Usuário SeniorEase",
             email: currUser.email || "",
           })
           .select()
@@ -201,7 +215,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Verifica sessão atual no mount
     const checkSession = async () => {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user) {
         await loadUserData(session.user);
       } else {
@@ -216,21 +232,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession();
 
     // Ouve alterações no estado de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          if (session?.user) {
-            await loadUserData(session.user);
-          }
-        } else if (event === "SIGNED_OUT") {
-          setUser(null);
-          setProfile(null);
-          setPreferences(null);
-          clearPreferences();
-          router.push("/login");
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        if (session?.user) {
+          await loadUserData(session.user);
         }
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+        setProfile(null);
+        setPreferences(null);
+        clearPreferences();
+        router.push("/login");
       }
-    );
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -242,9 +258,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loading && user && preferences) {
       const isConfigPage = window.location.pathname === "/acessibilidade";
-      const isAuthPage = window.location.pathname === "/login" || window.location.pathname === "/novo_cadastro";
+      const isAuthPage =
+        window.location.pathname === "/login" ||
+        window.location.pathname === "/novo_cadastro";
 
-      if (preferences.has_configured === false && !isConfigPage && !isAuthPage) {
+      if (
+        preferences.has_configured === false &&
+        !isConfigPage &&
+        !isAuthPage
+      ) {
         router.push("/acessibilidade");
       }
     }
@@ -273,7 +295,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { success: false, error: "Usuário não encontrado." };
     } catch (err: any) {
-      return { success: false, error: err.message || "Erro desconhecido ao entrar." };
+      return {
+        success: false,
+        error: err.message || "Erro desconhecido ao entrar.",
+      };
     }
   };
 
@@ -301,7 +326,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || "Erro desconhecido ao cadastrar." };
+      return {
+        success: false,
+        error: err.message || "Erro desconhecido ao cadastrar.",
+      };
     }
   };
 
@@ -375,10 +403,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { success: false, error: "Falha ao salvar preferências." };
     } catch (err: any) {
-      return { success: false, error: err.message || "Erro desconhecido ao salvar." };
+      return {
+        success: false,
+        error: err.message || "Erro desconhecido ao salvar.",
+      };
     }
   };
-
 
   return (
     <AuthContext.Provider

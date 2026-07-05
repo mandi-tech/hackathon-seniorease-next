@@ -135,7 +135,7 @@ export default function FormConfig() {
         high_element_spacing: values.espacamento,
         visual_feedback: values.interacao,
         extra_confirm: values.seguranca,
-        has_configured: true, // Registra que o usuário configurou suas preferências
+        has_configured: true,
       });
 
       if (result.success) {
@@ -208,11 +208,7 @@ export default function FormConfig() {
           </h3>
           <div className="flex items-center justify-between gap-10 bg-fundo-secundario p-5! rounded-md w-[fit-content] text-xl! w-full">
             Feedback visual reforçado
-            <Form.Item
-              name="interacao"
-              valuePropName="checked"
-              noStyle
-            >
+            <Form.Item name="interacao" valuePropName="checked" noStyle>
               <Switch />
             </Form.Item>
           </div>
@@ -246,4 +242,3 @@ export default function FormConfig() {
     </div>
   );
 }
-
