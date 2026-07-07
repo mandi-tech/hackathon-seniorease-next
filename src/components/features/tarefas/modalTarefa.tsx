@@ -15,6 +15,7 @@ import { UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { Pencil, Plus } from "lucide-react";
 
 export interface iModalTarefaProps {
   tipo: "tarefa" | "subtarefa";
@@ -219,8 +220,9 @@ export default function ModalTarefa({
           onClick={() => handleSetOpen(true)}
           className="text-titulo3! text-fundo!"
           size="large"
+          icon={isModoEdicao ? <Pencil /> : <Plus />}
         >
-          {isModoEdicao ? "Editar" : `+ Adicionar ${tipo}`}
+          {isModoEdicao ? "Editar Tarefa" : "Adicionar Tarefa"}
         </Button>
       )}
 
@@ -248,7 +250,11 @@ export default function ModalTarefa({
             name="title"
             rules={[{ required: true, message: "Por favor, insira o título" }]}
           >
-            <Input maxLength={100} placeholder="Digite o título da atividade" />
+            <Input
+              maxLength={100}
+              placeholder="Digite o título da atividade"
+              size="large"
+            />
           </Form.Item>
 
           <Form.Item
@@ -262,6 +268,7 @@ export default function ModalTarefa({
               maxLength={1000}
               rows={4}
               placeholder="Descreva os detalhes..."
+              size="large"
             />
           </Form.Item>
 
@@ -271,7 +278,11 @@ export default function ModalTarefa({
               name="due_date"
               rules={[{ required: true, message: "Por favor, insira a data" }]}
             >
-              <DatePicker className="w-full!" format="DD/MM/YYYY" />
+              <DatePicker
+                className="w-full!"
+                format="DD/MM/YYYY"
+                size="large"
+              />
             </Form.Item>
 
             <Form.Item
@@ -297,6 +308,7 @@ export default function ModalTarefa({
                   { value: "19:00", label: "19:00" },
                   { value: "20:00", label: "20:00" },
                 ]}
+                size="large"
               />
             </Form.Item>
           </div>
@@ -312,6 +324,7 @@ export default function ModalTarefa({
               placeholder="Escolha uma categoria"
               options={categorias}
               loading={categorias.length === 0}
+              size="large"
             />
           </Form.Item>
 
@@ -322,7 +335,7 @@ export default function ModalTarefa({
             getValueFromEvent={(e: any) => (Array.isArray(e) ? e : e?.fileList)}
           >
             <Upload multiple beforeUpload={() => false}>
-              <Button icon={<UploadOutlined />}>
+              <Button icon={<UploadOutlined />} size="large">
                 Clique para fazer Upload
               </Button>
             </Upload>

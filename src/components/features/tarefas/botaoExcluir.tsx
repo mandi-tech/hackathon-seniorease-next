@@ -104,7 +104,7 @@ export default function BotaoExcluir({
 
   return (
     <Button
-      className="text-white"
+      className="text-titulo3!"
       size="large"
       type="primary"
       danger

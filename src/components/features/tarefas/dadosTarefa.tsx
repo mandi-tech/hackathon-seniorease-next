@@ -273,7 +273,7 @@ export default function DadosTarefa() {
               Passo de: {tarefaPai.title}
             </span>
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-5!">
             <h1 className="text-secundaria text-titulo1 font-bold leading-tight">
               {infoExibida.titulo}
             </h1>
@@ -406,7 +406,7 @@ export default function DadosTarefa() {
                       </Checkbox>
 
                       <div className="flex items-center gap-3 ml-auto">
-                        <span className="text-xs text-texto-secundaria bg-fundo px-2 py-1 rounded">
+                        <span className="text-paragrafo text-texto-secundaria bg-fundo px-2 py-1 rounded">
                           Ordem: {step.step_order}
                         </span>
 

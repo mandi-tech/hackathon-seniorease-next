@@ -5,6 +5,7 @@ import { Button, Modal, Form, Input, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { Pencil, Plus } from "lucide-react";
 
 export interface iModalEtapaProps {
   idTarefaPai: string; // ID da Task principal essencial para vincular o Step
@@ -177,13 +178,14 @@ export default function ModalEtapa({
           onClick={() => handleSetOpen(true)}
           className="text-titulo3! text-fundo!"
           size="large"
+          icon={isModoEdicao ? <Pencil /> : <Plus />}
         >
-          {isModoEdicao ? "Editar Passo" : "+ Adicionar Passo"}
+          {isModoEdicao ? "Editar Etapa" : "Adicionar Etapa"}
         </Button>
       )}
 
       <Modal
-        title={isModoEdicao ? "Editar Passo / Etapa" : "Adicionar Novo Passo"}
+        title={isModoEdicao ? "Editar Etapa" : "Adicionar Nova Etapa"}
         open={open}
         confirmLoading={loading}
         onOk={() => form.submit()}
@@ -202,12 +204,12 @@ export default function ModalEtapa({
           className="mt-4"
         >
           <Form.Item
-            label="Instrução do Passo"
+            label="Instrução da Etapa"
             name="instruction"
             rules={[
               {
                 required: true,
-                message: "Por favor, insira o que deve ser feito neste passo",
+                message: "Por favor, insira o que deve ser feito nesta etapa",
               },
             ]}
           >
@@ -219,7 +221,7 @@ export default function ModalEtapa({
           </Form.Item>
 
           <Form.Item
-            label="Documentos e Evidências do Passo"
+            label="Documentos e Evidências da Etapa"
             name="task_files"
             valuePropName="fileList"
             getValueFromEvent={(e: any) => (Array.isArray(e) ? e : e?.fileList)}
