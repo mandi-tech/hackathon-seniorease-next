@@ -106,7 +106,7 @@ const EspacamentoInput = ({ value, onChange }: BooleanInputProps) => (
 
 export default function FormConfig() {
   const [form] = Form.useForm();
-  const { message } = App.useApp();
+  const { notification } = App.useApp();
   const { preferences, updatePreferences } = useAuth();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -139,14 +139,23 @@ export default function FormConfig() {
       });
 
       if (result.success) {
-        message.success("Configurações de acessibilidade salvas com sucesso!");
+        notification.success({
+          title: "Sucesso!",
+          description: "Configurações de acessibilidade salvas com sucesso!",
+        });
         router.push("/");
       } else {
-        message.error("Erro ao salvar configurações: " + result.error);
+        notification.error({
+          title: "Erro ao salvar",
+          description: "Erro ao salvar configurações: " + result.error,
+        });
       }
     } catch (err) {
       console.error(err);
-      message.error("Ocorreu um erro ao salvar as configurações.");
+      notification.error({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar as configurações.",
+      });
     } finally {
       setSaving(false);
     }

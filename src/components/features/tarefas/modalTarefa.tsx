@@ -10,6 +10,7 @@ import {
   Select,
   Upload,
   message,
+  App,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -41,6 +42,7 @@ export default function ModalTarefa({
   const [loading, setLoading] = useState(false);
   const [categorias, setCategorias] = useState<iCategoriaOption[]>([]);
   const [form] = Form.useForm();
+  const { notification } = App.useApp();
 
   const { user } = useAuth();
   const supabase = createClient();
@@ -192,11 +194,12 @@ export default function ModalTarefa({
         }
       }
 
-      message.success(
-        isModoEdicao
+      notification.success({
+        title: "Sucesso!",
+        description: isModoEdicao
           ? "Tarefa atualizada com sucesso!"
           : "Tarefa adicionada com sucesso!",
-      );
+      });
       form.resetFields();
       handleSetOpen(false);
 

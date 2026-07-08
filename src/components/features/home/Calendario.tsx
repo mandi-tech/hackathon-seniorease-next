@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Calendar, Button, Spin, message } from "antd";
+import { Calendar, Button, Spin, message, App } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
+
+import { iTask } from "@/src/libs/types/iTarefa";
 
 dayjs.locale("pt-br");
 
@@ -21,14 +23,6 @@ const listaStatus = [
   { value: "concluida", color: "#10b981" },
   { value: "em_atraso", color: "#ef4444" },
 ];
-interface iTask {
-  id: string;
-  title: string;
-  description: string;
-  due_date: string;
-  is_completed: boolean;
-  category_id: string;
-}
 
 export default function Calendario({ className }: iCalendarioProps) {
   const router = useRouter();
@@ -36,6 +30,7 @@ export default function Calendario({ className }: iCalendarioProps) {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const supabase = createClient();
+  const { notification } = App.useApp();
 
   const [tasks, setTasks] = useState<iTask[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,16 +75,18 @@ export default function Calendario({ className }: iCalendarioProps) {
         setTasks(data || []);
       } catch (error: any) {
         console.error("Erro ao buscar tarefas do calendário:", error);
-        message.error("Não foi possível carregar as tarefas deste mês.");
+        notification.error({
+          title: "Erro ao carregar tarefas",
+          message: "Não foi possível carregar as tarefas deste mês.",
+        });
       } finally {
         setLoading(false);
       }
     }
 
     buscarTarefasDoMes();
-  }, [value.month(), value.year(), user]); // 💡 Monitora estritamente a mudança do mês e do ano
+  }, [value.month(), value.year(), user]);
 
-  // Função para mapear o status dinamicamente com base na coluna bool e no vencimento
   const obterStatusDaTarefa = (tarefa: iTask) => {
     if (tarefa.is_completed) return "concluida";
 
@@ -100,7 +97,7 @@ export default function Calendario({ className }: iCalendarioProps) {
       return "em_atraso";
     }
 
-    return "pendente"; // Retorne "em_andamento" se tiver controle de progresso nos seus steps
+    return "pendente";
   };
 
   const handleDateChange = (newValue: dayjs.Dayjs) => {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Avatar } from "antd";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { getInitials } from "@/src/libs/utils/formatters";
 
 export default function Navbar() {
   const { profile, user, signOut } = useAuth();
@@ -10,11 +11,6 @@ export default function Navbar() {
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     await signOut();
-  };
-
-  const getInitials = (name?: string) => {
-    if (!name) return "U";
-    return name.trim().split(" ")[0].substring(0, 2).toUpperCase();
   };
 
   return (

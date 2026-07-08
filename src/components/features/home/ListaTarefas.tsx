@@ -3,30 +3,18 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClockCircleOutlined, LoadingOutlined } from "@ant-design/icons";
-import { Spin, message } from "antd";
+import { App, Spin, message } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { iTask } from "@/src/libs/types/iTarefa";
 import ModalTarefa from "../tarefas/modalTarefa";
 
 dayjs.locale("pt-br");
 
 export interface iListaTarefasProps {
   className?: string;
-}
-
-// Interfaces baseadas na modelagem do seu banco de dados
-interface iTask {
-  id: string;
-  title: string;
-  description: string;
-  due_date: string;
-  is_completed: boolean;
-  category_id: string;
-  categories?: {
-    name: string;
-  } | null;
 }
 
 // Configuração visual estática para mapear o status com base no booleano e tempo
@@ -50,6 +38,7 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
   const dataParam = searchParams.get("data");
   const router = useRouter();
   const { user } = useAuth();
+  const { notification } = App.useApp();
   const supabase = createClient();
 
   // Estados locais para dados e controle de loading
@@ -91,7 +80,10 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
       setTarefas(data || []);
     } catch (error: any) {
       console.error("Erro ao carregar tarefas do dia:", error);
-      message.error("Não foi possível carregar a agenda deste dia.");
+      notification.error({
+        title: "Erro ao carregar tarefas",
+        message: "Não foi possível carregar a agenda deste dia.",
+      });
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Divider, Form, Input, message } from "antd";
+import { App, Button, Divider, Form, Input, message } from "antd";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useState } from "react";
@@ -10,6 +10,7 @@ export default function FormNovoCadastro() {
   const router = useRouter();
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { notification } = App.useApp();
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -18,14 +19,23 @@ export default function FormNovoCadastro() {
     try {
       const result = await signUp(email, senha, nome);
       if (result.success) {
-        message.success("Cadastro realizado com sucesso! Faça seu login.");
+        notification.success({
+          title: "Cadastro realizado com sucesso!",
+          message: "Faça seu login.",
+        });
         router.push("/login");
       } else {
-        message.error(result.error || "Ocorreu um erro ao realizar o cadastro.");
+        notification.error({
+          title: "Erro no cadastro",
+          message: result.error || "Ocorreu um erro ao realizar o cadastro.",
+        });
       }
     } catch (err) {
       console.error("Erro no cadastro:", err);
-      message.error("Ocorreu um erro ao criar a conta. Tente novamente.");
+      notification.error({
+        title: "Erro no cadastro",
+        message: "Ocorreu um erro ao criar a conta. Tente novamente.",
+      });
     } finally {
       setLoading(false);
     }
@@ -50,14 +60,18 @@ export default function FormNovoCadastro() {
           name="nome"
           rules={[{ required: true, message: "Por favor, digite seu nome!" }]}
         >
-          <Input type="text" size="large" placeholder="Digite seu nome completo" />
+          <Input
+            type="text"
+            size="large"
+            placeholder="Digite seu nome completo"
+          />
         </Form.Item>
         <Form.Item
           label="Email"
           name="email"
           rules={[
             { required: true, message: "Por favor, digite seu e-mail!" },
-            { type: "email", message: "Insira um e-mail válido!" }
+            { type: "email", message: "Insira um e-mail válido!" },
           ]}
         >
           <Input type="email" size="large" placeholder="nome@exemplo.com" />
@@ -70,10 +84,13 @@ export default function FormNovoCadastro() {
           name="senha"
           rules={[
             { required: true, message: "Por favor, digite sua senha!" },
-            { min: 6, message: "A senha deve ter no mínimo 6 caracteres!" }
+            { min: 6, message: "A senha deve ter no mínimo 6 caracteres!" },
           ]}
         >
-          <Input.Password size="large" placeholder="Crie uma senha forte (mín. 6 caracteres)" />
+          <Input.Password
+            size="large"
+            placeholder="Crie uma senha forte (mín. 6 caracteres)"
+          />
         </Form.Item>
         <Form.Item
           label="Confirmação de Senha"
@@ -107,4 +124,3 @@ export default function FormNovoCadastro() {
     </section>
   );
 }
-

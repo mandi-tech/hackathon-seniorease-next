@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Modal, Form, Input, Upload, message } from "antd";
+import { Button, Modal, Form, Input, Upload, message, App } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { Pencil, Plus } from "lucide-react";
 
 export interface iModalEtapaProps {
-  idTarefaPai: string; // ID da Task principal essencial para vincular o Step
+  idTarefaPai: string;
   onSuccess?: () => void;
-  dadosEdicao?: any; // Se passado, o modal entra em modo Edição de Step
+  dadosEdicao?: any;
   controlOpen?: boolean;
   setControlOpen?: (open: boolean) => void;
 }
@@ -25,6 +25,7 @@ export default function ModalEtapa({
   const [internalOpen, setInternalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const { notification } = App.useApp();
 
   const { user } = useAuth();
   const supabase = createClient();
@@ -40,11 +41,9 @@ export default function ModalEtapa({
     }
   };
 
-  // Preenche os campos caso entre em modo edição
   useEffect(() => {
     if (open) {
       if (isModoEdicao && dadosEdicao) {
-        // Formata os arquivos vinculados a esse step específico
         const arquivosFormatados =
           dadosEdicao.task_files?.map((file: any) => ({
             uid: file.id,
@@ -75,7 +74,6 @@ export default function ModalEtapa({
       let targetStepId = dadosEdicao?.id;
 
       if (isModoEdicao) {
-        // 1. Modo Edição: UPDATE na tabela task_steps
         const { error: updateError } = await supabase
           .from("task_steps")
           .update({
@@ -86,7 +84,6 @@ export default function ModalEtapa({
 
         if (updateError) throw updateError;
       } else {
-        // 2. Modo Criação: Descobrir o próximo número da ordem (step_order)
         const { data: stepsExistentes, error: errorOrdem } = await supabase
           .from("task_steps")
           .select("step_order")
@@ -99,7 +96,6 @@ export default function ModalEtapa({
             ? Math.max(...stepsExistentes.map((s) => s.step_order)) + 1
             : 1;
 
-        // 3. Executa o INSERT na tabela task_steps
         const { data: stepData, error: stepError } = await supabase
           .from("task_steps")
           .insert([
@@ -117,16 +113,14 @@ export default function ModalEtapa({
         targetStepId = stepData?.id;
       }
 
-      // 4. Tratamento de uploads de novos arquivos vinculados ao Step
       const fileList = values.task_files || [];
       if (fileList.length > 0 && targetStepId) {
         for (const file of fileList) {
           const originFile = file.originFileObj;
-          if (!originFile) continue; // Pula arquivos antigos já salvos
+          if (!originFile) continue;
 
           const fileExt = originFile.name.split(".").pop();
           const uniqueFileName = `${crypto.randomUUID()}.${fileExt}`;
-          // Organiza a estrutura de pastas incluindo o ID do step no caminho físico do storage
           const filePath = `${user.id}/${idTarefaPai}/steps/${targetStepId}/${uniqueFileName}`;
 
           const { error: uploadError } = await supabase.storage
@@ -135,13 +129,12 @@ export default function ModalEtapa({
 
           if (uploadError) throw uploadError;
 
-          // Insere metadados amarrando tanto a Task pai quanto o Step correspondente
           const { error: fileTableError } = await supabase
             .from("task_files")
             .insert([
               {
                 task_id: idTarefaPai,
-                step_id: targetStepId, // 💡 Agora o arquivo aponta diretamente para o Step
+                step_id: targetStepId,
                 file_name: originFile.name,
                 file_path: filePath,
                 file_type: originFile.type,
@@ -152,11 +145,12 @@ export default function ModalEtapa({
         }
       }
 
-      message.success(
-        isModoEdicao
+      notification.success({
+        title: "Sucesso!",
+        description: isModoEdicao
           ? "Passo atualizado com sucesso!"
           : "Novo passo adicionado!",
-      );
+      });
 
       form.resetFields();
       handleSetOpen(false);
@@ -164,7 +158,10 @@ export default function ModalEtapa({
       if (onSuccess) onSuccess();
     } catch (error: any) {
       console.error("Erro ao salvar etapa:", error);
-      message.error(`Erro ao salvar: ${error.message || "Tente novamente."}`);
+      notification.error({
+        title: "Erro ao salvar",
+        description: `Erro ao salvar: ${error.message || "Tente novamente."}`,
+      });
     } finally {
       setLoading(false);
     }

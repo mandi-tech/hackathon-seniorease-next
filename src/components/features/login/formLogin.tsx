@@ -4,34 +4,47 @@ import { Button, Form, Input, message } from "antd";
 import Link from "next/link";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useState } from "react";
+import { App } from "antd";
 
 export default function FormLogin() {
   const [form] = Form.useForm();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { notification } = App.useApp();
 
   const onFinish = async (values: any) => {
     setLoading(true);
     const { email, senha } = values;
-    
+
     try {
       const result = await signIn(email, senha);
       if (result.success) {
-        message.success("Login realizado com sucesso!");
-        // O redirect é feito pelo signIn() no AuthContext (para /acessibilidade ou /)
+        notification.success({
+          title: "Login realizado com sucesso!",
+          message: "Seja bem-vindo(a) de volta!",
+        });
       } else {
-        message.error(result.error || "E-mail ou senha incorretos.");
+        notification.error({
+          title: "Erro no login",
+          message: result.error || "E-mail ou senha incorretos.",
+        });
       }
     } catch (err) {
       console.error("Erro no login:", err);
-      message.error("Ocorreu um erro ao fazer o login. Tente novamente.");
+      notification.error({
+        title: "Erro no login",
+        message: "Ocorreu um erro ao fazer o login. Tente novamente.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const onFinishFailed = (errorInfo: any) => {
-    console.log("Failed:", errorInfo);
+    notification.error({
+      title: "Erro no login",
+      message: errorInfo.errorFields.map((f: any) => f.errors).join(", "),
+    });
   };
 
   return (
@@ -49,7 +62,7 @@ export default function FormLogin() {
           name="email"
           rules={[
             { required: true, message: "Por favor, digite seu e-mail!" },
-            { type: "email", message: "Insira um e-mail válido!" }
+            { type: "email", message: "Insira um e-mail válido!" },
           ]}
         >
           <Input type="email" size="large" placeholder="nome@exemplo.com" />
@@ -58,11 +71,16 @@ export default function FormLogin() {
           <Form.Item
             label="Senha"
             name="senha"
-            rules={[{ required: true, message: "Por favor, digite sua senha!" }]}
+            rules={[
+              { required: true, message: "Por favor, digite sua senha!" },
+            ]}
           >
             <Input.Password size="large" placeholder="Digite sua senha" />
           </Form.Item>
-          <Link href="/" className="text-texto-secundaria text-paragrafo hover:text-primaria">
+          <Link
+            href="/"
+            className="text-texto-secundaria text-paragrafo hover:text-primaria"
+          >
             Esqueci minha senha
           </Link>
         </div>
@@ -87,4 +105,3 @@ export default function FormLogin() {
     </section>
   );
 }
-

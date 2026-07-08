@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Checkbox, Tag, message, Breadcrumb, Spin, Modal } from "antd";
+import {
+  Button,
+  Checkbox,
+  Tag,
+  message,
+  Breadcrumb,
+  Spin,
+  Modal,
+  App,
+} from "antd";
 import { useRouter, useParams } from "next/navigation";
 import {
   ClockCircleOutlined,
@@ -16,69 +25,42 @@ import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
+import {
+  iFileAttachment,
+  iTaskStep,
+  iMainTask,
+} from "@/src/libs/types/iTarefa";
 import ModalTarefa from "./modalTarefa";
 import ModalEtapa from "./modalEtapa";
 import BotaoExcluir from "./botaoExcluir";
 
 dayjs.locale("pt-br");
 
-interface iFileAttachment {
-  id: string;
-  file_name: string;
-  file_path: string;
-  file_type: string;
-}
-
-interface iTaskStep {
-  id: string;
-  task_id: string;
-  step_order: number;
-  instruction: string;
-  is_completed: boolean;
-  updated_at: string;
-  task_files?: iFileAttachment[];
-}
-
-interface iMainTask {
-  id: string;
-  title: string;
-  description: string;
-  is_completed: boolean;
-  due_date: string;
-  category_id: string;
-  task_steps: iTaskStep[];
-  task_files: iFileAttachment[];
-}
-
 export default function DadosTarefa() {
   const router = useRouter();
   const params = useParams();
   const { user } = useAuth();
   const supabase = createClient();
+  const { notification } = App.useApp();
 
   const tarefaParams = params?.tarefa;
 
-  // Extrai os IDs com base no Catch-all Route [...tarefa] do Next.js
   const idTarefa = Array.isArray(tarefaParams) ? tarefaParams[0] : undefined;
   const idSubtarefa =
     Array.isArray(tarefaParams) && tarefaParams.length > 1
       ? tarefaParams[1]
       : undefined;
 
-  // Estados principais da tela
   const [tarefaPai, setTarefaPai] = useState<iMainTask | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Define se o usuário está visualizando a página focada no passo (subtarefa) ou na raiz
   const modoSubtarefa = !!idSubtarefa;
 
-  // Carrega os dados da tarefa principal, seus passos e arquivos
   const carregarEstruturaTarefa = async () => {
     if (!idTarefa || !user) return;
 
     setLoading(true);
     try {
-      // Busca a Task, traz os Steps ordenados e os arquivos da Task raiz
       const { data, error } = await supabase
         .from("tasks")
         .select(
@@ -95,14 +77,12 @@ export default function DadosTarefa() {
       if (error) throw error;
 
       if (data) {
-        // Ordena os passos de acordo com a coluna step_order
         if (data.task_steps) {
           data.task_steps.sort(
             (a: iTaskStep, b: iTaskStep) => a.step_order - b.step_order,
           );
         }
 
-        // Caso estejamos no modoSubtarefa, buscamos também os anexos específicos deste Step
         if (idSubtarefa) {
           const { data: filesStep, error: filesStepErr } = await supabase
             .from("task_files")
@@ -122,7 +102,10 @@ export default function DadosTarefa() {
       }
     } catch (error: any) {
       console.error("Erro ao carregar detalhes da tarefa:", error);
-      message.error("Não foi possível encontrar a atividade solicitada.");
+      notification.error({
+        title: "Erro ao carregar detalhes da tarefa",
+        message: "Não foi possível encontrar a atividade solicitada.",
+      });
     } finally {
       setLoading(false);
     }
@@ -132,7 +115,6 @@ export default function DadosTarefa() {
     carregarEstruturaTarefa();
   }, [idTarefa, idSubtarefa, user]);
 
-  // Se estiver carregando, exibe spinner centralizado
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[40vh]">
@@ -141,7 +123,6 @@ export default function DadosTarefa() {
     );
   }
 
-  // Fallback se a tarefa principal não existir no banco
   if (!tarefaPai) {
     return (
       <div className="p-6 text-center bg-fundo-secundario rounded-xl shadow-md">
@@ -155,7 +136,6 @@ export default function DadosTarefa() {
     );
   }
 
-  // Filtra qual informação exibir dinamicamente (Task principal vs Step específico)
   const subtarefaSelecionada = tarefaPai.task_steps?.find(
     (s) => s.id === idSubtarefa,
   );
@@ -166,7 +146,7 @@ export default function DadosTarefa() {
         ? subtarefaSelecionada.instruction
         : tarefaPai.title,
     descricao:
-      modoSubtarefa && subtarefaSelecionada ? "" : tarefaPai.description, // Steps salvam a instrução no título, não possuem descrição longa apartada
+      modoSubtarefa && subtarefaSelecionada ? "" : tarefaPai.description,
     is_completed:
       modoSubtarefa && subtarefaSelecionada
         ? subtarefaSelecionada.is_completed
@@ -179,7 +159,6 @@ export default function DadosTarefa() {
     hora: dayjs(tarefaPai.due_date).format("HH:mm"),
   };
 
-  // Mapeamento dinâmico de status com base na coluna bool do Postgres e tempo de vencimento
   const obterStatusTag = () => {
     if (infoExibida.is_completed)
       return { label: "Concluída", color: "#10b981" };
@@ -191,7 +170,6 @@ export default function DadosTarefa() {
 
   const statusInfo = obterStatusTag();
 
-  // Alterna o estado de conclusão de uma subtarefa (tabela task_steps)
   const handleAlternarCheckboxStep = async (
     stepId: string,
     checked: boolean,
@@ -204,21 +182,67 @@ export default function DadosTarefa() {
 
       if (error) throw error;
 
-      // Atualiza o estado local reativamente
       if (tarefaPai.task_steps) {
         const novosSteps = tarefaPai.task_steps.map((sub) =>
           sub.id === stepId ? { ...sub, is_completed: checked } : sub,
         );
         setTarefaPai({ ...tarefaPai, task_steps: novosSteps });
       }
-      message.success("Progresso do passo atualizado!");
+      notification.success({
+        title: "Sucesso!",
+        description: "Progresso do passo atualizado!",
+      });
     } catch (error) {
       console.error(error);
-      message.error("Erro ao atualizar o status do passo.");
+      notification.error({
+        title: "Erro ao atualizar",
+        description: "Erro ao atualizar o status do passo.",
+      });
     }
   };
 
-  // Configuração dinâmica das migalhas de pão (Breadcrumb)
+  const handleAlternarConclusaoPrincipal = async (checked: boolean) => {
+    if (!tarefaPai) return;
+
+    try {
+      if (modoSubtarefa && idSubtarefa) {
+        const { error } = await supabase
+          .from("task_steps")
+          .update({ is_completed: checked, updated_at: new Date().toISOString() })
+          .eq("id", idSubtarefa);
+
+        if (error) throw error;
+
+        if (tarefaPai.task_steps) {
+          const novosSteps = tarefaPai.task_steps.map((sub) =>
+            sub.id === idSubtarefa ? { ...sub, is_completed: checked } : sub,
+          );
+          setTarefaPai({ ...tarefaPai, task_steps: novosSteps });
+        }
+      } else if (idTarefa) {
+        const { error } = await supabase
+          .from("tasks")
+          .update({ is_completed: checked })
+          .eq("id", idTarefa);
+
+        if (error) throw error;
+
+        setTarefaPai({ ...tarefaPai, is_completed: checked });
+      }
+
+      notification.success({
+        title: "Sucesso!",
+        description: "Status de conclusão atualizado!",
+      });
+    } catch (error) {
+      console.error(error);
+      notification.error({
+        title: "Erro ao atualizar",
+        description: "Não foi possível alterar o status de conclusão.",
+      });
+    }
+  };
+
   const itensBreadcrumb = [
     {
       title: (
@@ -273,8 +297,13 @@ export default function DadosTarefa() {
               Passo de: {tarefaPai.title}
             </span>
           )}
-          <div className="flex items-center gap-5!">
-            <h1 className="text-secundaria text-titulo1 font-bold leading-tight">
+          <div className="flex items-center gap-4">
+            <Checkbox
+              checked={infoExibida.is_completed}
+              onChange={(e) => handleAlternarConclusaoPrincipal(e.target.checked)}
+              className="scale-150 mr-2"
+            />
+            <h1 className="text-secundaria text-titulo1 font-bold leading-tight m-0">
               {infoExibida.titulo}
             </h1>
             <Tag
