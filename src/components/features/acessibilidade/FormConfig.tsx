@@ -1,6 +1,9 @@
 "use client";
 
-import { Button, Form, Radio, Switch } from "antd";
+import { useEffect, useState } from "react";
+import { App, Button, Form, Switch } from "antd";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 import {
   AlignVerticalSpaceAround,
   CaseSensitive,
@@ -103,12 +106,68 @@ const EspacamentoInput = ({ value, onChange }: BooleanInputProps) => (
 
 export default function FormConfig() {
   const [form] = Form.useForm();
+  const { notification } = App.useApp();
+  const { preferences, updatePreferences } = useAuth();
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
+
+  // Carrega as configurações do banco no formulário
+  useEffect(() => {
+    if (preferences) {
+      form.setFieldsValue({
+        tipo_interface: preferences.ui_mode ?? false,
+        tamanhoFonte: preferences.font_size ?? "padrao",
+        contraste: preferences.contrast_level ?? false,
+        espacamento: preferences.high_element_spacing ?? false,
+        interacao: preferences.visual_feedback ?? true,
+        seguranca: preferences.extra_confirm ?? false,
+      });
+    }
+  }, [preferences, form]);
+
+  const onFinish = async (values: any) => {
+    setSaving(true);
+    try {
+      const result = await updatePreferences({
+        ui_mode: values.tipo_interface,
+        font_size: values.tamanhoFonte,
+        contrast_level: values.contraste,
+        high_element_spacing: values.espacamento,
+        visual_feedback: values.interacao,
+        extra_confirm: values.seguranca,
+        has_configured: true,
+      });
+
+      if (result.success) {
+        notification.success({
+          title: "Sucesso!",
+          description: "Configurações de acessibilidade salvas com sucesso!",
+        });
+        router.push("/");
+      } else {
+        notification.error({
+          title: "Erro ao salvar",
+          description: "Erro ao salvar configurações: " + result.error,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      notification.error({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar as configurações.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="mx-auto! block! w-full! xl:w-[80%] lg:w-[90%]">
       <Form
         layout="vertical"
         className="grid! lg:grid-cols-2! gap-x-10! lg:gap-x-30! gap-y-5"
         form={form}
+        onFinish={onFinish}
       >
         <div>
           <h3 className="flex items-center gap-2 font-semibold! text-titulo2! mb-2">
@@ -158,12 +217,7 @@ export default function FormConfig() {
           </h3>
           <div className="flex items-center justify-between gap-10 bg-fundo-secundario p-5! rounded-md w-[fit-content] text-xl! w-full">
             Feedback visual reforçado
-            <Form.Item
-              name="interacao"
-              valuePropName="checked"
-              rules={[{ required: true }]}
-              noStyle
-            >
+            <Form.Item name="interacao" valuePropName="checked" noStyle>
               <Switch />
             </Form.Item>
           </div>
@@ -187,6 +241,7 @@ export default function FormConfig() {
             type="primary"
             size="large"
             htmlType="submit"
+            loading={saving}
             className="w-[80%]! md:w-[60%]! lg:w-[50%]! mx-auto! block! text-xl! font-semibold!"
           >
             Salvar

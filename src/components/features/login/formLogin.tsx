@@ -1,20 +1,50 @@
 "use client";
 
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, message } from "antd";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { useState } from "react";
+import { App } from "antd";
 
 export default function FormLogin() {
   const [form] = Form.useForm();
-  const router = useRouter();
+  const { signIn } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { notification } = App.useApp();
 
-  const onFinish = (values: any) => {
-    console.log("Success:", values);
-    router.push("/");
+  const onFinish = async (values: any) => {
+    setLoading(true);
+    const { email, senha } = values;
+
+    try {
+      const result = await signIn(email, senha);
+      if (result.success) {
+        notification.success({
+          title: "Login realizado com sucesso!",
+          message: "Seja bem-vindo(a) de volta!",
+        });
+      } else {
+        notification.error({
+          title: "Erro no login",
+          message: result.error || "E-mail ou senha incorretos.",
+        });
+      }
+    } catch (err) {
+      console.error("Erro no login:", err);
+      notification.error({
+        title: "Erro no login",
+        message: "Ocorreu um erro ao fazer o login. Tente novamente.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onFinishFailed = (errorInfo: any) => {
-    console.log("Failed:", errorInfo);
+    notification.error({
+      title: "Erro no login",
+      message: errorInfo.errorFields.map((f: any) => f.errors).join(", "),
+    });
   };
 
   return (
@@ -30,19 +60,27 @@ export default function FormLogin() {
         <Form.Item
           label="Email"
           name="email"
-          rules={[{ required: true, message: "Email inválido", type: "email" }]}
+          rules={[
+            { required: true, message: "Por favor, digite seu e-mail!" },
+            { type: "email", message: "Insira um e-mail válido!" },
+          ]}
         >
-          <Input type="email" size="large" />
+          <Input type="email" size="large" placeholder="nome@exemplo.com" />
         </Form.Item>
         <div className="space-y-2!">
           <Form.Item
             label="Senha"
             name="senha"
-            rules={[{ required: true, message: "Senha inválida" }]}
+            rules={[
+              { required: true, message: "Por favor, digite sua senha!" },
+            ]}
           >
-            <Input type="password" size="large" />
+            <Input.Password size="large" placeholder="Digite sua senha" />
           </Form.Item>
-          <Link href="/" className="text-texto-secundaria text-paragrafo">
+          <Link
+            href="/"
+            className="text-texto-secundaria text-paragrafo hover:text-primaria"
+          >
             Esqueci minha senha
           </Link>
         </div>
@@ -52,13 +90,14 @@ export default function FormLogin() {
           htmlType="submit"
           size="large"
           className="w-full! mx-auto!"
+          loading={loading}
         >
           Entrar
         </Button>
 
         <p className="text-texto! w-full! text-center! text-paragrafo">
           Não possui uma conta?{" "}
-          <Link href="/novo_cadastro" className="text-primaria">
+          <Link href="/novo_cadastro" className="text-primaria hover:underline">
             Faça seu cadastro aqui!
           </Link>
         </p>

@@ -4,13 +4,13 @@
   /* Cores */
   --color-fundo: var(--theme-fundo);
   --color-fundo-secundario: var(--theme-fundo-secundario);
-  
+
   --color-texto: var(--theme-texto);
   --color-texto-secundario: var(--theme-texto-secundario);
-  
+
   --color-primaria: var(--theme-primaria);
   --color-primaria-hover: var(--theme-primaria-hover);
-  
+
   --color-secundaria: var(--theme-secundaria);
   --color-secundaria-hover: var(--theme-secundaria-hover);
 
@@ -20,7 +20,7 @@
   --color-destaque: var(--theme-destaque);
   --color-rosa: var(--theme-rosa);
   --color-lavanda: var(--theme-lavanda);
-  
+
   --color-card: var(--theme-card);
   --color-borda: var(--theme-borda);
   --color-suave: var(--theme-suave);
@@ -39,5 +39,8 @@ body {
   background: var(--theme-fundo);
   color: var(--theme-texto);
   font-size: var(--theme-paragrafo);
-  transition: background-color 0.2s ease, color 0.2s ease, font-size 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    font-size 0.2s ease;
 }

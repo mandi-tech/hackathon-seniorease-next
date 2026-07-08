@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Atkinson_Hyperlegible_Next } from "next/font/google";
 import "../../styles/globals.css";
 import { getDynamicThemeStyles } from "../../styles/theme";
+import { AuthProvider } from "@/src/contexts/AuthContext";
 
 const atkinson = Atkinson_Hyperlegible_Next({
   variable: "--font-atkinson",
@@ -31,7 +32,12 @@ export default function RootLayout({
       <head>
         <style dangerouslySetInnerHTML={{ __html: getDynamicThemeStyles() }} />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }
+
