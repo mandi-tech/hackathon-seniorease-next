@@ -208,7 +208,10 @@ export default function DadosTarefa() {
       if (modoSubtarefa && idSubtarefa) {
         const { error } = await supabase
           .from("task_steps")
-          .update({ is_completed: checked, updated_at: new Date().toISOString() })
+          .update({
+            is_completed: checked,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", idSubtarefa);
 
         if (error) throw error;
@@ -300,7 +303,9 @@ export default function DadosTarefa() {
           <div className="flex items-center gap-4">
             <Checkbox
               checked={infoExibida.is_completed}
-              onChange={(e) => handleAlternarConclusaoPrincipal(e.target.checked)}
+              onChange={(e) =>
+                handleAlternarConclusaoPrincipal(e.target.checked)
+              }
               className="scale-150 mr-2"
             />
             <h1 className="text-secundaria text-titulo1 font-bold leading-tight m-0">
@@ -356,7 +361,6 @@ export default function DadosTarefa() {
       </div>
 
       <div className="flex flex-col gap-6">
-        {/* Seção de Descrição (Apenas se houver ou se for a tarefa raiz) */}
         {!modoSubtarefa && (
           <div>
             <h2 className="text-secundaria text-titulo3 font-semibold mb-2">
