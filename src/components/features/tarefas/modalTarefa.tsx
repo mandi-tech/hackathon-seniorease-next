@@ -44,7 +44,7 @@ export default function ModalTarefa({
   const [form] = Form.useForm();
   const { notification } = App.useApp();
 
-  const { user } = useAuth();
+  const { user, preferences } = useAuth();
   const supabase = createClient();
 
   // Determina se o modal está aberto usando controle interno ou externo
@@ -225,7 +225,9 @@ export default function ModalTarefa({
           size="large"
           icon={isModoEdicao ? <Pencil /> : <Plus />}
         >
-          {isModoEdicao ? "Editar Tarefa" : "Adicionar Tarefa"}
+          {isModoEdicao
+            ? !preferences?.ui_mode && "Editar Tarefa"
+            : "Adicionar Tarefa"}
         </Button>
       )}
 

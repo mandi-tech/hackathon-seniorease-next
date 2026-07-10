@@ -3,6 +3,7 @@ import { Atkinson_Hyperlegible_Next } from "next/font/google";
 import "../../styles/globals.css";
 import { getDynamicThemeStyles } from "../../styles/theme";
 import { AuthProvider } from "@/src/contexts/AuthContext";
+import { App } from "antd";
 
 const atkinson = Atkinson_Hyperlegible_Next({
   variable: "--font-atkinson",
@@ -12,7 +13,6 @@ const atkinson = Atkinson_Hyperlegible_Next({
   style: ["normal", "italic"],
   adjustFontFallback: false,
 });
-
 
 export const metadata: Metadata = {
   title: "SeniorEase",
@@ -25,19 +25,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="pt-br"
-      className={`${atkinson.variable}  h-full antialiased`}
-    >
+    <html lang="pt-br" className={`${atkinson.variable}  h-full antialiased`}>
       <head>
         <style dangerouslySetInnerHTML={{ __html: getDynamicThemeStyles() }} />
       </head>
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <App>
+          <AuthProvider>{children}</AuthProvider>
+        </App>
       </body>
     </html>
   );
 }
-
