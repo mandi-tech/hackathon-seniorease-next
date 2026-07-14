@@ -4,6 +4,7 @@ import "../../styles/globals.css";
 import { getDynamicThemeStyles } from "../../styles/theme";
 import { AuthProvider } from "@/src/contexts/AuthContext";
 import { App } from "antd";
+import AntdThemeProvider from "@/src/styles/AntdThemeProvider";
 
 const atkinson = Atkinson_Hyperlegible_Next({
   variable: "--font-atkinson",
@@ -30,9 +31,11 @@ export default function RootLayout({
         <style dangerouslySetInnerHTML={{ __html: getDynamicThemeStyles() }} />
       </head>
       <body className="min-h-full flex flex-col">
-        <App>
-          <AuthProvider>{children}</AuthProvider>
-        </App>
+        <AuthProvider>
+          <App>
+            <AntdThemeProvider>{children}</AntdThemeProvider>
+          </App>
+        </AuthProvider>
       </body>
     </html>
   );
