@@ -5,7 +5,11 @@ import { Avatar, Button, Card, Descriptions, Tag, Spin } from "antd";
 import { Pen, User, Mail, Settings, CheckCircle2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { getInitials, formatFontSize, formatPreferenceStatus } from "@/src/libs/utils/formatters";
+import {
+  getInitials,
+  formatFontSize,
+  formatPreferenceStatus,
+} from "@/src/libs/utils/formatters";
 
 export default function DadosPerfil() {
   const router = useRouter();
@@ -33,16 +37,22 @@ export default function DadosPerfil() {
       {/* Cartão do Usuário */}
       <Card className="shadow-md bg-fundo-secundario border border-fundo">
         <div className="flex flex-col sm:flex-row items-center gap-6">
-          <Avatar 
-            size={90} 
-            style={{ backgroundColor: "var(--theme-primaria)", color: "#fff", fontSize: "2rem" }}
+          <Avatar
+            size={90}
+            style={{
+              backgroundColor: "var(--theme-primaria)",
+              color: "#fff",
+              fontSize: "2rem",
+            }}
             className="flex items-center justify-center font-bold"
           >
             {getInitials(name, email)}
           </Avatar>
-          
+
           <div className="space-y-2 text-center sm:text-left flex-1">
-            <h2 className="text-titulo2 font-bold text-secundaria m-0">{name}</h2>
+            <h2 className="text-titulo2 font-bold text-secundaria m-0">
+              {name}
+            </h2>
             <p className="text-primaria text-titulo3 flex items-center justify-center sm:justify-start gap-2 m-0">
               <Mail size={18} /> {email}
             </p>
@@ -51,18 +61,20 @@ export default function DadosPerfil() {
       </Card>
 
       {/* Preferências de Acessibilidade */}
-      <Card 
+      <Card
         className="shadow-md bg-fundo-secundario border border-fundo"
         title={
           <div className="flex items-center justify-between py-2">
             <span className="flex items-center gap-2 text-titulo2 font-semibold text-secundaria">
-              <Settings size={22} className="text-primaria" /> Minhas Preferências de Acessibilidade
+              <Settings size={22} className="text-primaria" /> Minhas
+              Preferências de Acessibilidade
             </span>
             <Button
               type="primary"
               icon={<Pen size={16} />}
               className="text-paragrafo font-medium flex items-center gap-1"
               onClick={() => router.push("/acessibilidade")}
+              size="large"
             >
               Editar
             </Button>
@@ -74,10 +86,17 @@ export default function DadosPerfil() {
             {/* Modo de Interface */}
             <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
               <div>
-                <h4 className="font-semibold text-secundaria text-paragrafo m-0">Modo de Interface</h4>
-                <p className="text-xs text-texto-secundaria m-0">Interface visual padrão ou simplificada</p>
+                <h4 className="font-semibold text-secundaria text-paragrafo m-0">
+                  Modo de Interface
+                </h4>
+                <p className="text-xs text-texto-secundaria m-0">
+                  Interface visual padrão ou simplificada
+                </p>
               </div>
-              <Tag color={preferences.ui_mode ? "blue" : "default"} className="text-paragrafo py-0.5 px-3 font-semibold">
+              <Tag
+                color={preferences.ui_mode ? "blue" : "default"}
+                className="text-paragrafo py-0.5 px-3 font-semibold"
+              >
                 {preferences.ui_mode ? "Modo Simples" : "Modo Padrão"}
               </Tag>
             </div>
@@ -85,10 +104,17 @@ export default function DadosPerfil() {
             {/* Tamanho da Fonte */}
             <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
               <div>
-                <h4 className="font-semibold text-secundaria text-paragrafo m-0">Tamanho da Fonte</h4>
-                <p className="text-xs text-texto-secundaria m-0">Escala de legibilidade do texto</p>
+                <h4 className="font-semibold text-secundaria text-paragrafo m-0">
+                  Tamanho da Fonte
+                </h4>
+                <p className="text-xs text-texto-secundaria m-0">
+                  Escala de legibilidade do texto
+                </p>
               </div>
-              <Tag color="purple" className="text-paragrafo py-0.5 px-3 font-semibold">
+              <Tag
+                color="purple"
+                className="text-paragrafo py-0.5 px-3 font-semibold"
+              >
                 {formatFontSize(preferences.font_size)}
               </Tag>
             </div>
@@ -96,12 +122,22 @@ export default function DadosPerfil() {
             {/* Contraste Alto */}
             <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
               <div>
-                <h4 className="font-semibold text-secundaria text-paragrafo m-0">Contraste Alto</h4>
-                <p className="text-xs text-texto-secundaria m-0">Aumenta o contraste visual da tela</p>
+                <h4 className="font-semibold text-secundaria text-paragrafo m-0">
+                  Contraste Alto
+                </h4>
+                <p className="text-xs text-texto-secundaria m-0">
+                  Aumenta o contraste visual da tela
+                </p>
               </div>
-              <Tag 
-                color={preferences.contrast_level ? "success" : "default"} 
-                icon={preferences.contrast_level ? <CheckCircle2 size={12} className="inline mr-1" /> : <XCircle size={12} className="inline mr-1" />}
+              <Tag
+                color={preferences.contrast_level ? "success" : "default"}
+                icon={
+                  preferences.contrast_level ? (
+                    <CheckCircle2 size={12} className="inline mr-1" />
+                  ) : (
+                    <XCircle size={12} className="inline mr-1" />
+                  )
+                }
                 className="text-paragrafo py-0.5 px-3 font-semibold flex items-center"
               >
                 {formatPreferenceStatus(preferences.contrast_level)}
@@ -111,10 +147,17 @@ export default function DadosPerfil() {
             {/* Espaçamento Amplo */}
             <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
               <div>
-                <h4 className="font-semibold text-secundaria text-paragrafo m-0">Espaçamento</h4>
-                <p className="text-xs text-texto-secundaria m-0">Aumenta o espaçamento entre elementos</p>
+                <h4 className="font-semibold text-secundaria text-paragrafo m-0">
+                  Espaçamento
+                </h4>
+                <p className="text-xs text-texto-secundaria m-0">
+                  Aumenta o espaçamento entre elementos
+                </p>
               </div>
-              <Tag color={preferences.high_element_spacing ? "cyan" : "default"} className="text-paragrafo py-0.5 px-3 font-semibold">
+              <Tag
+                color={preferences.high_element_spacing ? "cyan" : "default"}
+                className="text-paragrafo py-0.5 px-3 font-semibold"
+              >
                 {preferences.high_element_spacing ? "Amplo" : "Confortável"}
               </Tag>
             </div>
@@ -122,12 +165,22 @@ export default function DadosPerfil() {
             {/* Feedback Visual Reforçado */}
             <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
               <div>
-                <h4 className="font-semibold text-secundaria text-paragrafo m-0">Feedback Visual</h4>
-                <p className="text-xs text-texto-secundaria m-0">Indicadores e destaques visuais extras</p>
+                <h4 className="font-semibold text-secundaria text-paragrafo m-0">
+                  Feedback Visual
+                </h4>
+                <p className="text-xs text-texto-secundaria m-0">
+                  Indicadores e destaques visuais extras
+                </p>
               </div>
-              <Tag 
+              <Tag
                 color={preferences.visual_feedback ? "success" : "default"}
-                icon={preferences.visual_feedback ? <CheckCircle2 size={12} className="inline mr-1" /> : <XCircle size={12} className="inline mr-1" />}
+                icon={
+                  preferences.visual_feedback ? (
+                    <CheckCircle2 size={12} className="inline mr-1" />
+                  ) : (
+                    <XCircle size={12} className="inline mr-1" />
+                  )
+                }
                 className="text-paragrafo py-0.5 px-3 font-semibold flex items-center"
               >
                 {formatPreferenceStatus(preferences.visual_feedback)}
@@ -137,14 +190,20 @@ export default function DadosPerfil() {
             {/* Confirmação Extra */}
             <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
               <div>
-                <h4 className="font-semibold text-secundaria text-paragrafo m-0">Segurança de Exclusão</h4>
-                <p className="text-xs text-texto-secundaria m-0">Exigir confirmação antes de apagar itens</p>
+                <h4 className="font-semibold text-secundaria text-paragrafo m-0">
+                  Segurança de Exclusão
+                </h4>
+                <p className="text-xs text-texto-secundaria m-0">
+                  Exigir confirmação antes de apagar itens
+                </p>
               </div>
-              <Tag 
+              <Tag
                 color={preferences.extra_confirm ? "warning" : "default"}
                 className="text-paragrafo py-0.5 px-3 font-semibold"
               >
-                {preferences.extra_confirm ? "Confirmação Exigida" : "Direta (Sem confirmação)"}
+                {preferences.extra_confirm
+                  ? "Confirmação Exigida"
+                  : "Direta (Sem confirmação)"}
               </Tag>
             </div>
           </div>
