@@ -67,12 +67,20 @@ export default function BotaoExcluir({
 
     if (preferences?.extra_confirm) {
       Modal.confirm({
-        title: `Tem certeza que deseja excluir este ${tipo === "tarefa" ? "tarefa" : "passo"}?`,
-        icon: <ExclamationCircleFilled />,
-        content:
-          tipo === "tarefa"
-            ? "Esta ação removerá permanentemente a tarefa, todos os seus subpassos e arquivos anexados."
-            : "Esta ação removerá permanentemente este passo e os arquivos associados a ele.",
+        title: (
+          <div className="text-titulo3! text-fundo">
+            Tem certeza que deseja excluir este{" "}
+            {tipo === "tarefa" ? "tarefa" : "passo"}?
+          </div>
+        ),
+        icon: <ExclamationCircleFilled className="text-titulo2!" />,
+        content: (
+          <div className="text-fundo-secundario! text-paragrafo! font-normal!">
+            {tipo === "tarefa"
+              ? "Esta ação removerá permanentemente a tarefa, todos os seus subpassos e arquivos anexados."
+              : "Esta ação removerá permanentemente este passo e os arquivos associados a ele."}
+          </div>
+        ),
         okText: "Sim, excluir",
         okType: "danger",
         cancelText: "Cancelar",
@@ -97,7 +105,7 @@ export default function BotaoExcluir({
       icon={executando ? <LoadingOutlined spin /> : <Trash2 size={22} />}
       onClick={handleDispararFluxo}
     >
-      {executando ? "Excluindo..." : "Excluir"}
+      {!preferences?.ui_mode && <>{executando ? "Excluindo..." : "Excluir"}</>}
     </Button>
   );
 }

@@ -123,7 +123,7 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
               return (
                 <div
                   key={tarefa.id}
-                  className="bg-fundo-secundario border-l-4 p-3 rounded-lg shadow-md flex gap-3 relative overflow-hidden items-start"
+                  className="bg-fundo-secundario! border-l-4 p-3 rounded-lg shadow-md flex gap-3 relative overflow-hidden items-start"
                   style={{
                     borderLeftColor: statusInfo.color,
                     cursor: "pointer",

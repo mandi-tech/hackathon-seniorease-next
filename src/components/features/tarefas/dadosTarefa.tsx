@@ -39,7 +39,7 @@ dayjs.locale("pt-br");
 export default function DadosTarefa() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
+  const { user, preferences } = useAuth();
   const supabase = createClient();
   const { notification } = App.useApp();
 
@@ -208,7 +208,10 @@ export default function DadosTarefa() {
       if (modoSubtarefa && idSubtarefa) {
         const { error } = await supabase
           .from("task_steps")
-          .update({ is_completed: checked, updated_at: new Date().toISOString() })
+          .update({
+            is_completed: checked,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", idSubtarefa);
 
         if (error) throw error;
@@ -298,11 +301,15 @@ export default function DadosTarefa() {
             </span>
           )}
           <div className="flex items-center gap-4">
-            <Checkbox
-              checked={infoExibida.is_completed}
-              onChange={(e) => handleAlternarConclusaoPrincipal(e.target.checked)}
-              className="scale-150 mr-2"
-            />
+            {preferences?.ui_mode && (
+              <Checkbox
+                checked={infoExibida.is_completed}
+                onChange={(e) =>
+                  handleAlternarConclusaoPrincipal(e.target.checked)
+                }
+                className="scale-150 mr-2"
+              />
+            )}
             <h1 className="text-secundaria text-titulo1 font-bold leading-tight m-0">
               {infoExibida.titulo}
             </h1>
@@ -332,6 +339,19 @@ export default function DadosTarefa() {
         </div>
 
         <div className="flex gap-3">
+          {!preferences?.ui_mode && (
+            <Button
+              onClick={() =>
+                handleAlternarConclusaoPrincipal(!infoExibida.is_completed)
+              }
+              className="w-full"
+              size="large"
+              variant="outlined"
+              color={infoExibida.is_completed ? "red" : "green"}
+            >
+              {infoExibida.is_completed ? "Tirar de Concluída" : "Concluir"}
+            </Button>
+          )}
           {modoSubtarefa ? (
             <ModalEtapa
               idTarefaPai={tarefaPai.id}
@@ -416,28 +436,56 @@ export default function DadosTarefa() {
                       key={step.id}
                       className="flex items-center justify-between p-3 bg-fundo/30 border rounded-lg hover:bg-fundo/60 transition-colors"
                     >
-                      <Checkbox
-                        checked={step.is_completed}
-                        onChange={(e) =>
-                          handleAlternarCheckboxStep(step.id, e.target.checked)
-                        }
-                        className="text-paragrafo! text-secundaria font-medium [&_.ant-checkbox-inner]:w-5 [&_.ant-checkbox-inner]:h-5"
-                      >
-                        <span
-                          className={
-                            step.is_completed
-                              ? "line-through text-texto-secundaria/50 font-normal"
-                              : ""
+                      {preferences?.ui_mode ? (
+                        <Checkbox
+                          checked={step.is_completed}
+                          onChange={(e) =>
+                            handleAlternarCheckboxStep(
+                              step.id,
+                              e.target.checked,
+                            )
                           }
+                          className="text-paragrafo! text-secundaria font-medium [&_.ant-checkbox-inner]:w-5 [&_.ant-checkbox-inner]:h-5"
                         >
+                          <span
+                            className={
+                              step.is_completed
+                                ? "line-through text-texto-secundaria/50 font-normal"
+                                : ""
+                            }
+                          >
+                            {step.instruction}
+                          </span>
+                        </Checkbox>
+                      ) : (
+                        <p className="text-paragrafo! text-texto">
                           {step.instruction}
-                        </span>
-                      </Checkbox>
+                        </p>
+                      )}
 
                       <div className="flex items-center gap-3 ml-auto">
                         <span className="text-paragrafo text-texto-secundaria bg-fundo px-2 py-1 rounded">
                           Ordem: {step.step_order}
                         </span>
+
+                        {!preferences?.ui_mode && (
+                          <Button
+                            onClick={() =>
+                              handleAlternarCheckboxStep(
+                                step.id,
+                                !step.is_completed,
+                              )
+                            }
+                            className="w-full"
+                            size="large"
+                            variant="outlined"
+                            color={step.is_completed ? "red" : "green"}
+                          >
+                            {step.is_completed
+                              ? "Tirar de Concluída"
+                              : "Concluir"}
+                          </Button>
+                        )}
 
                         <Button
                           className="text-primaria! text-paragrafo! border! border-primaria!"

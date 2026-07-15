@@ -4,14 +4,14 @@ export const primitivos = {
   azulClaro: "#0056D2",
   creme: "#F9F7F2",
   cinzaNeutro: "#777779",
-  
+
   // Cores padrões/semânticas
   verde: "#166534",
   vermelho: "#991b1b",
   amarelo: "#854d0e",
   laranja: "#f97316",
   rosa: "#ec4899",
-  
+
   // Cores adicionais para Dark Mode e Estados
   azulEscuro: "#60a5fa",
   verdeEscuro: "#4ade80",
@@ -69,9 +69,9 @@ export const paletaEscura = {
 
 // Paleta de Alto Contraste do Guia de Estilo (Preto Puro + Branco/Amarelo)
 export const paletaAltoContraste = {
-  primaria: "#ffff00", /* Amarelo Puro */
+  primaria: "#ffff00" /* Amarelo Puro */,
   "primaria-hover": "#ffea00",
-  secundaria: "#ffffff", /* Branco Puro */
+  secundaria: "#ffffff" /* Branco Puro */,
   "secundaria-hover": "#e5e5e5",
   sucesso: "#00ff00",
   perigo: "#ff0000",
@@ -80,12 +80,12 @@ export const paletaAltoContraste = {
   rosa: "#ffffff",
   lavanda: "#ffffff",
   borda: "#ffffff",
-  fundo: "#000000", /* Preto Puro */
-  "fundo-secundario": "#000000",
+  fundo: "#000000" /* Preto Puro */,
+  "fundo-secundario": "#1c1b1bff",
   texto: "#ffffff",
   "texto-secundario": "#ffff00",
   card: "#000000",
-  suave: "#ffff00", /* Amarelo para status/links */
+  suave: "#ffff00" /* Amarelo para status/links */,
 };
 
 /* ==========================================
@@ -150,7 +150,10 @@ export const getDynamicThemeStyles = () => {
   `;
 };
 
-export const tailwindColors = Object.keys(paletaClara).reduce((acc, key) => {
-  acc[key] = `var(--theme-${key})`;
-  return acc;
-}, {} as Record<string, string>);
+export const tailwindColors = Object.keys(paletaClara).reduce(
+  (acc, key) => {
+    acc[key] = `var(--theme-${key})`;
+    return acc;
+  },
+  {} as Record<string, string>,
+);

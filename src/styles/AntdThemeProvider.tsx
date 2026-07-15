@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { App, ConfigProvider, theme as antdTheme } from "antd";
+import { App, ConfigProvider, DatePicker, theme as antdTheme } from "antd";
 import type { ThemeConfig } from "antd";
 import ptBR from "antd/locale/pt_BR";
 import {
@@ -124,6 +124,8 @@ export default function AntdThemeProvider({
     // 1. Obtém os tokens de acessibilidade computados
     const fontTokens = getFontTokens(fontScale);
     const spacingTokens = getSpacingTokens(spaceScale);
+    let configCalendar = {};
+    let configComponents = {};
 
     // 2. Mapeamento base da paleta de cores
     let tokenCores = {
@@ -143,12 +145,37 @@ export default function AntdThemeProvider({
         colorWarning: paletaEscura.alerta,
       };
     } else if (mode === "high-contrast") {
+      algorithm = antdTheme.darkAlgorithm;
+
       tokenCores = {
         colorPrimary: paletaAltoContraste.primaria,
         colorSuccess: paletaAltoContraste.sucesso,
         colorError: paletaAltoContraste.perigo,
         colorWarning: paletaAltoContraste.alerta,
       };
+      configComponents = {
+        Input: {
+          colorTextLightSolid: paletaAltoContraste.fundo,
+          colorText: paletaAltoContraste.texto,
+          colorTextPlaceholder: paletaAltoContraste.texto,
+          colorTextHeading: paletaAltoContraste.fundo,
+        },
+        Button: {
+          primaryColor: paletaAltoContraste.fundo,
+        },
+        DatePicker: {
+          colorTextLightSolid: paletaAltoContraste.fundo,
+          colorText: paletaAltoContraste.texto,
+          colorTextPlaceholder: paletaAltoContraste.texto,
+          colorTextHeading: paletaAltoContraste.fundo,
+        },
+        Select: {
+          colorTextLightSolid: paletaAltoContraste.fundo,
+          colorText: paletaAltoContraste.texto,
+          colorTextPlaceholder: paletaAltoContraste.texto,
+        },
+      };
+      configCalendar = { colorTextLightSolid: paletaAltoContraste.fundo };
     }
 
     return {
@@ -167,12 +194,9 @@ export default function AntdThemeProvider({
       components: {
         Calendar: {
           fullBg: "transparent",
+          ...configCalendar,
         },
-        // Caso use espaçamento compacto, você também pode injetar o algoritmo compacto nativo do AntD
-        ...(spaceScale === "compact" && {
-          Button: { controlHeight: 28 },
-          Input: { controlHeight: 28 },
-        }),
+        ...configComponents,
       },
     };
   };
