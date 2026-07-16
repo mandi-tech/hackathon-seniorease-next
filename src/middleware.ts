@@ -29,6 +29,11 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // Bypass do middleware em ambiente de teste E2E para permitir testes herméticos com page.route
+  if (process.env.NEXT_PUBLIC_IS_E2E === "true") {
+    return supabaseResponse;
+  }
+
   // Para garantir a segurança de dados, usamos getUser() no middleware.
   // Isso entra em contato com o servidor do Supabase para verificar se o token é válido.
   const {
