@@ -1,63 +1,63 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Calendar, Button, Spin, App } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import "dayjs/locale/pt-br";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { iTask } from "@/src/libs/types/iTarefa";
 
+dayjs.extend(customParseFormat);
 dayjs.locale("pt-br");
+
+// Instancia fora do componente para evitar recriação da referência de memória a cada render
+const supabase = createClient();
 
 export interface iCalendarioProps {
   className?: string;
 }
+
+const obterStatusDaTarefa = (tarefa: iTask) => {
+  if (tarefa.is_completed) return "concluida";
+  const hoje = dayjs();
+  const dataVencimento = dayjs(tarefa.due_date);
+  if (dataVencimento.isBefore(hoje, "day")) return "em_atraso";
+  return "pendente";
+};
 
 export default function Calendario({ className }: iCalendarioProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const supabase = createClient();
   const { notification } = App.useApp();
 
   const [tasks, setTasks] = useState<iTask[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Deriva o valor de data diretamente a partir da URL
   const dataParam = searchParams.get("data");
+  const parsedParam = dataParam ? dayjs(dataParam, "DD-MM-YYYY") : null;
+  const value = parsedParam && parsedParam.isValid() ? parsedParam : dayjs();
 
-  const [value, setValue] = useState(() => {
-    if (dataParam) {
-      const parsed = dayjs(dataParam, "DD-MM-YYYY");
-      if (parsed.isValid()) return parsed;
-    }
-    return dayjs();
-  });
+  // Mês e Ano formatados para chave do efeito (evita requisições repetidas se apenas o dia mudar)
+  const anoMesChave = value.format("YYYY-MM");
 
-  // Atualização de sincronia com a URL sem re-trigger direto de efeito
   useEffect(() => {
-    if (dataParam) {
-      const parsedDate = dayjs(dataParam, "DD-MM-YYYY");
-      if (parsedDate.isValid()) {
-        setValue((prev) =>
-          parsedDate.isSame(prev, "day") ? prev : parsedDate,
-        );
-      }
-    }
-  }, [dataParam]);
+    let active = true;
 
-  const carregarTarefasDoMes = useCallback(
-    async (dataAtual: dayjs.Dayjs) => {
+    const buscarTarefas = async () => {
       if (!user?.id) return;
 
       setLoading(true);
-      try {
-        const inicioMes = dataAtual.startOf("month").format("YYYY-MM-DD");
-        const fimMes = dataAtual.endOf("month").format("YYYY-MM-DD");
+      const inicioMes = value.startOf("month").format("YYYY-MM-DD");
+      const fimMes = value.endOf("month").format("YYYY-MM-DD");
 
+      try {
         const { data, error } = await supabase
           .from("tasks")
           .select("*")
@@ -65,49 +65,43 @@ export default function Calendario({ className }: iCalendarioProps) {
           .gte("due_date", inicioMes)
           .lte("due_date", fimMes);
 
-        if (error) throw error;
-        setTasks(data || []);
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Erro desconhecido";
-        notification.error({
-          title: "Erro ao carregar calendário",
-          message: msg,
-        });
-      } finally {
-        setLoading(false);
-      }
-    },
-    [user, supabase, notification],
-  );
+        if (!active) return;
 
-  useEffect(() => {
-    let active = true;
-    if (active) {
-      carregarTarefasDoMes(value);
-    }
+        if (error) {
+          notification.error({
+            title: "Erro ao carregar calendário",
+            message: "Não foi possível carregar as tarefas do mês.",
+          });
+        } else {
+          setTasks((data as iTask[]) || []);
+        }
+      } catch (err) {
+        if (active) console.error("Erro inesperado ao buscar tarefas:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    buscarTarefas();
+
     return () => {
       active = false;
     };
-  }, [value, carregarTarefasDoMes]);
+  }, [user?.id, anoMesChave]); // Dispara apenas quando o ID do usuário ou o MÊS/ANO mudarem
 
-  const obterStatusDaTarefa = (tarefa: iTask) => {
-    if (tarefa.is_completed) return "concluida";
-    const hoje = dayjs().startOf("day");
-    const dataVencimento = dayjs(tarefa.due_date).startOf("day");
-    if (dataVencimento.isBefore(hoje)) return "em_atraso";
-    return "pendente";
-  };
-
-  const handleSelect = (newValue: dayjs.Dayjs) => {
-    setValue(newValue);
+  const handleSelectDate = (newValue: dayjs.Dayjs) => {
+    const dataFormatada = newValue.format("DD-MM-YYYY");
     const params = new URLSearchParams(searchParams.toString());
-    params.set("data", newValue.format("DD-MM-YYYY"));
+    params.set("data", dataFormatada);
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const handleMonthChange = (amount: number) => {
-    const newValue = value.add(amount, "month");
-    handleSelect(newValue);
+  const handleMudarMes = (direcao: "anterior" | "proximo") => {
+    const novoValor =
+      direcao === "anterior"
+        ? value.subtract(1, "month")
+        : value.add(1, "month");
+    handleSelectDate(novoValor);
   };
 
   return (
@@ -123,7 +117,7 @@ export default function Calendario({ className }: iCalendarioProps) {
         <div className="flex items-center gap-2">
           <Button
             icon={<LeftOutlined />}
-            onClick={() => handleMonthChange(-1)}
+            onClick={() => handleMudarMes("anterior")}
             className="text-paragrafo"
             aria-label="Mês anterior"
           />
@@ -132,14 +126,14 @@ export default function Calendario({ className }: iCalendarioProps) {
           </span>
           <Button
             icon={<RightOutlined />}
-            onClick={() => handleMonthChange(1)}
+            onClick={() => handleMudarMes("proximo")}
             className="text-paragrafo"
             aria-label="Próximo mês"
           />
         </div>
       </div>
 
-      {/* Legenda de Status de Acessibilidade */}
+      {/* Legenda de Status */}
       <div className="flex flex-wrap items-center gap-4 mb-4 text-paragrafo text-texto-secundaria">
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-blue-500 inline-block" />{" "}
@@ -165,8 +159,8 @@ export default function Calendario({ className }: iCalendarioProps) {
 
         <Calendar
           value={value}
-          onSelect={handleSelect}
-          headerRender={() => null} // Oculta o cabeçalho padrão para usar o cabeçalho acessível
+          onSelect={handleSelectDate}
+          headerRender={() => null}
           cellRender={(current) => {
             const dataString = current.format("YYYY-MM-DD");
             const tarefasDoDia = tasks.filter(
@@ -175,7 +169,7 @@ export default function Calendario({ className }: iCalendarioProps) {
 
             return (
               <div className="h-full flex flex-col justify-between overflow-hidden p-1">
-                {/* Visualização para Desktop */}
+                {/* Desktop */}
                 <ul className="hidden sm:block space-y-1 p-0 m-0 list-none">
                   {tarefasDoDia.slice(0, 3).map((tarefa) => {
                     const status = obterStatusDaTarefa(tarefa);
@@ -206,7 +200,7 @@ export default function Calendario({ className }: iCalendarioProps) {
                   )}
                 </ul>
 
-                {/* Indicadores para Dispositivos Móveis */}
+                {/* Mobile */}
                 {tarefasDoDia.length > 0 && (
                   <div className="flex sm:hidden justify-center gap-1 mt-auto pb-1 shrink-0">
                     {tarefasDoDia.map((tarefa) => {

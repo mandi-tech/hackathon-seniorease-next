@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button, Tag, Breadcrumb, Spin, App } from "antd";
 import { useRouter, useParams } from "next/navigation";
 import {
   ClockCircleOutlined,
   CalendarOutlined,
-  FileTextOutlined,
   HomeOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -20,11 +19,13 @@ import BotaoExcluir from "./botaoExcluir";
 
 dayjs.locale("pt-br");
 
+// Instanciado fora do componente para manter referência estável na memória
+const supabase = createClient();
+
 export default function DadosTarefa() {
   const router = useRouter();
   const params = useParams();
   const { user } = useAuth();
-  const supabase = createClient();
   const { notification } = App.useApp();
 
   const tarefaParams = params?.tarefa;
@@ -38,73 +39,81 @@ export default function DadosTarefa() {
   const [tarefaPai, setTarefaPai] = useState<iMainTask | null>(null);
   const [subtarefas, setSubtarefas] = useState<iTaskStep[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const carregarEstruturaTarefa = useCallback(async () => {
-    if (!idTarefa || !user?.id) return;
-
-    setLoading(true);
-    try {
-      const { data: paiData, error: paiError } = await supabase
-        .from("tasks")
-        .select("*, categories(name), task_files(*)")
-        .eq("id", idTarefa)
-        .single();
-
-      if (paiError) throw paiError;
-      setTarefaPai(paiData);
-
-      const { data: subData, error: subError } = await supabase
-        .from("task_steps")
-        .select("*, task_files(*)")
-        .eq("task_id", idTarefa)
-        .order("step_order", { ascending: true });
-
-      if (subError) throw subError;
-      setSubtarefas(subData || []);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro desconhecido";
-      notification.error({
-        title: "Erro ao carregar detalhes",
-        message: msg,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [idTarefa, user, supabase, notification]);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   useEffect(() => {
     let active = true;
-    if (active) {
-      carregarEstruturaTarefa();
-    }
+
+    const carregarEstruturaTarefa = async () => {
+      if (!user?.id || !idTarefa) return;
+
+      setLoading(true);
+      try {
+        const { data: dataPai, error: errPai } = await supabase
+          .from("tasks")
+          .select("*, categories(name)")
+          .eq("id", idTarefa)
+          .eq("user_id", user.id)
+          .single();
+
+        if (errPai) throw errPai;
+
+        // Ordenamos por 'id' (ou 'updated_at' se preferir) para evitar a coluna inexistente 'created_at'
+        const { data: dataSteps, error: errSteps } = await supabase
+          .from("task_steps")
+          .select("*")
+          .eq("task_id", idTarefa)
+          .order("id", { ascending: true });
+
+        if (errSteps) throw errSteps;
+
+        if (active) {
+          setTarefaPai(dataPai as iMainTask);
+          setSubtarefas((dataSteps as iTaskStep[]) || []);
+        }
+      } catch (err) {
+        if (active) {
+          console.error("Erro ao carregar detalhes da tarefa:", err);
+          notification.error({
+            title: "Erro ao carregar",
+            message: "Não foi possível carregar os dados da tarefa.",
+          });
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    carregarEstruturaTarefa();
+
     return () => {
       active = false;
     };
-  }, [carregarEstruturaTarefa]);
+  }, [user?.id, idTarefa, reloadTrigger, notification]);
+
+  const recarregarDados = () => {
+    setReloadTrigger((prev) => prev + 1);
+  };
 
   const handleAlternarCheckboxStep = async (
     stepId: string,
-    currentStatus: boolean,
+    isCompletedAtual: boolean,
   ) => {
     try {
       const { error } = await supabase
         .from("task_steps")
-        .update({ is_completed: !currentStatus })
+        .update({ is_completed: !isCompletedAtual })
         .eq("id", stepId);
 
       if (error) throw error;
-
-      setSubtarefas((prev) =>
-        prev.map((s) =>
-          s.id === stepId ? { ...s, is_completed: !currentStatus } : s,
-        ),
-      );
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Erro ao atualizar passo";
+      recarregarDados();
+    } catch (err) {
+      console.error("Erro ao alterar status do passo:", err);
       notification.error({
         title: "Erro na atualização",
-        message: msg,
+        message: "Não foi possível alterar o status do passo.",
       });
     }
   };
@@ -119,113 +128,116 @@ export default function DadosTarefa() {
 
   if (!tarefaPai) {
     return (
-      <div className="text-center py-12 text-texto-secundaria">
-        Tarefa não encontrada.
+      <div className="text-center py-10">
+        <p className="text-texto-secundaria">Tarefa não encontrada.</p>
+        <Button onClick={() => router.push("/")}>Voltar para o Início</Button>
       </div>
     );
   }
 
-  const stepAtual = idSubtarefa
-    ? subtarefas.find((s) => s.id === idSubtarefa)
-    : null;
+  const exibiSubtarefaAtual = subtarefas.find((s) => s.id === idSubtarefa);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Breadcrumb / Navegação */}
       <Breadcrumb
         items={[
           {
-            title: <HomeOutlined onClick={() => router.push("/")} />,
-            href: "/",
+            title: (
+              <span
+                onClick={() => router.push("/")}
+                className="cursor-pointer flex items-center gap-1"
+              >
+                <HomeOutlined /> Início
+              </span>
+            ),
           },
-          { title: tarefaPai.title, href: `/tarefas/${tarefaPai.id}` },
-          ...(stepAtual ? [{ title: `Etapa: ${stepAtual.instruction}` }] : []),
+          {
+            title: idSubtarefa ? (
+              <span
+                onClick={() => router.push(`/tarefas/${idTarefa}`)}
+                className="cursor-pointer text-primaria"
+              >
+                {tarefaPai.title}
+              </span>
+            ) : (
+              <span>{tarefaPai.title}</span>
+            ),
+          },
+          ...(idSubtarefa && exibiSubtarefaAtual
+            ? [
+                {
+                  title: (
+                    <span>
+                      {exibiSubtarefaAtual.instruction.slice(0, 20)}...
+                    </span>
+                  ),
+                },
+              ]
+            : []),
         ]}
       />
 
       <div className="bg-fundo-secundario p-6 rounded-2xl border border-fundo shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4">
-          <div>
+        {/* Cabeçalho da Tarefa */}
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b pb-4 border-fundo">
+          <div className="space-y-1">
             <h1 className="text-titulo1 font-bold text-secundaria m-0">
-              {stepAtual ? stepAtual.instruction : tarefaPai.title}
+              {tarefaPai.title}
             </h1>
-            <p className="text-texto-secundaria text-paragrafo mt-1">
-              {stepAtual
-                ? `Etapa da tarefa: ${tarefaPai.title}`
-                : tarefaPai.description || "Sem descrição registrada."}
+            <p className="text-paragrafo text-texto-secundaria m-0">
+              {tarefaPai.description || "Sem descrição"}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            {!stepAtual ? (
-              <>
-                <ModalTarefa
-                  tipo="tarefa"
-                  dadosEdicao={tarefaPai}
-                  onSuccess={carregarEstruturaTarefa}
-                />
-                <BotaoExcluir
-                  idTarget={tarefaPai.id}
-                  tipo="tarefa"
-                  arquivos={tarefaPai.task_files || []}
-                />
-              </>
-            ) : (
-              <>
-                <ModalEtapa
-                  idTarefaPai={tarefaPai.id}
-                  dadosEdicao={stepAtual}
-                  onSuccess={carregarEstruturaTarefa}
-                />
-                <BotaoExcluir
-                  idTarget={stepAtual.id}
-                  idTarefaPai={tarefaPai.id}
-                  tipo="subtarefa"
-                  arquivos={stepAtual.task_files || []}
-                />
-              </>
-            )}
+            <ModalTarefa
+              tipo="tarefa"
+              dadosEdicao={tarefaPai}
+              onSuccess={recarregarDados}
+            />
+            <BotaoExcluir idTarget={tarefaPai.id} tipo="tarefa" arquivos={[]} />
           </div>
         </div>
 
+        {/* Informações Complementares */}
         <div className="flex flex-wrap gap-4 text-paragrafo text-texto-secundaria">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <CalendarOutlined />
-            <span>Data: {dayjs(tarefaPai.due_date).format("DD/MM/YYYY")}</span>
+            <span>{dayjs(tarefaPai.due_date).format("DD/MM/YYYY")}</span>
           </div>
-          {tarefaPai.due_date && (
-            <div className="flex items-center gap-2">
-              <ClockCircleOutlined />
-              <span>Hora: {tarefaPai.due_date.substring(0, 5)}</span>
-            </div>
-          )}
+
+          <div className="flex items-center gap-1">
+            <ClockCircleOutlined />
+            <span>{dayjs(tarefaPai.due_date).format("HH:mm")}</span>
+          </div>
+
           <Tag color={tarefaPai.is_completed ? "green" : "blue"}>
-            {tarefaPai.is_completed ? "Concluída" : "Em Andamento"}
+            {tarefaPai.is_completed ? "Concluída" : "Pendente"}
           </Tag>
         </div>
 
-        {!stepAtual && (
+        {/* Seção de Passos/Etapas */}
+        {!idSubtarefa && (
           <div className="space-y-4 pt-4 border-t border-fundo">
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <h2 className="text-titulo2 font-semibold text-secundaria m-0">
                 Passos da Tarefa
               </h2>
               <ModalEtapa
                 idTarefaPai={tarefaPai.id}
-                onSuccess={carregarEstruturaTarefa}
+                onSuccess={recarregarDados}
               />
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {subtarefas.length > 0 ? (
-                subtarefas.map((step, index) => (
+                subtarefas.map((step) => (
                   <div
                     key={step.id}
-                    className="p-4 rounded-xl border border-fundo bg-fundo flex items-center justify-between gap-4"
+                    className="p-3 rounded-xl border border-fundo bg-fundo flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="font-bold text-primaria">
-                        #{index + 1}
-                      </span>
                       <p
                         className={`text-paragrafo m-0 ${
                           step.is_completed

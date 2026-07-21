@@ -107,7 +107,7 @@ export default function BotaoExcluir({
       icon={executando ? <LoadingOutlined spin /> : <Trash2 size={22} />}
       onClick={handleDispararFluxo}
     >
-      Excluir
+      {!preferences?.ui_mode ? "Excluir" : ""}
     </Button>
   );
 }

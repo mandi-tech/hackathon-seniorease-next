@@ -226,9 +226,8 @@ export default function ModalTarefa({
           size="large"
           icon={isModoEdicao ? <Pencil /> : <Plus />}
         >
-          {isModoEdicao
-            ? !preferences?.ui_mode && "Editar Tarefa"
-            : "Adicionar Tarefa"}
+          {!isModoEdicao && (!preferences?.ui_mode ? "Adicionar Tarefa" : "")}
+          {isModoEdicao && (!preferences?.ui_mode ? "Editar Tarefa" : "")}
         </Button>
       )}
 
