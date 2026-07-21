@@ -2,15 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ClockCircleOutlined, LoadingOutlined } from "@ant-design/icons";
-import { App, Spin } from "antd";
+import { ClockCircleOutlined } from "@ant-design/icons";
+import { Spin } from "antd";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import "dayjs/locale/pt-br";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { iTask } from "@/src/libs/types/iTarefa";
 import ModalTarefa from "../tarefas/modalTarefa";
 
+dayjs.extend(customParseFormat);
 dayjs.locale("pt-br");
 
 export interface iListaTarefasProps {
@@ -38,134 +40,127 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
   const router = useRouter();
   const { user } = useAuth();
   const supabase = createClient();
-  const { notification } = App.useApp();
 
-  const [tarefas, setTarefas] = useState<iTask[]>([]);
+  const [tasks, setTasks] = useState<iTask[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Parse correto da data recebida no parâmetro
+  const dataObjeto = dataParam ? dayjs(dataParam, "DD-MM-YYYY") : dayjs();
+
+  const dataAlvoStr = dataObjeto.isValid()
+    ? dataObjeto.format("YYYY-MM-DD")
+    : dayjs().format("YYYY-MM-DD");
 
   const buscarTarefasDoDia = useCallback(async () => {
     if (!user?.id) return;
 
     setLoading(true);
-
-    const dataBase = dataParam ? dayjs(dataParam, "DD-MM-YYYY") : dayjs();
-
-    const inicioDoDia = dataBase.startOf("day").toISOString();
-    const fimDoDia = dataBase.endOf("day").toISOString();
-
     try {
+      // Coobre todo o dia do início ao fim (previne divergências de horário/timestamp)
+      const inicioDia = `${dataAlvoStr}T00:00:00`;
+      const fimDia = `${dataAlvoStr}T23:59:59`;
+
       const { data, error } = await supabase
         .from("tasks")
-        .select(
-          `
-          *,
-          category:categories(name)
-        `,
-        )
+        .select("*, categories(name)")
         .eq("user_id", user.id)
-        .gte("due_date", inicioDoDia)
-        .lte("due_date", fimDoDia)
+        .gte("due_date", inicioDia)
+        .lte("due_date", fimDia)
         .order("due_date", { ascending: true });
 
       if (error) throw error;
-
-      setTarefas(data || []);
-    } catch (error: unknown) {
-      console.error("Erro ao carregar tarefas do dia:", error);
-      notification.error({
-        title: "Erro ao carregar tarefas",
-        description: "Não foi possível carregar as tarefas do dia.",
-      });
+      setTasks(data || []);
+    } catch (err) {
+      console.error("Erro ao carregar tarefas do dia:", err);
     } finally {
       setLoading(false);
     }
-  }, [user, dataParam, supabase, notification]);
+  }, [user, dataAlvoStr, supabase]);
 
   useEffect(() => {
-    if (user?.id) {
-      buscarTarefasDoDia();
-    }
-  }, [user?.id, buscarTarefasDoDia]);
+    buscarTarefasDoDia();
+  }, [buscarTarefasDoDia]);
 
-  const dataAlvoStr = dataParam || dayjs().format("DD-MM-YYYY");
-  const dataExibicao = dayjs(dataAlvoStr, "DD-MM-YYYY").format(
-    "D [de] MMMM [de] YYYY",
-  );
+  // Exibição amigável para a interface (ex: 09-07-2026 ou 09/07/2026)
+  const dataExibicao = dataObjeto.isValid()
+    ? dataObjeto.format("DD/MM/YYYY")
+    : dayjs().format("DD/MM/YYYY");
 
   return (
-    <section
-      className={`bg-fundo-secundario rounded-xl shadow-md p-6 flex flex-col justify-between ${className}`}
-    >
-      <div>
-        <div className="flex justify-between items-center border-b pb-4 mb-4">
-          <div>
-            <h2 className="text-titulo2 text-secundaria font-bold capitalize">
-              Atividades do Dia
+    <section className={className}>
+      <div className="bg-fundo-secundario p-4 sm:p-6 rounded-2xl border border-fundo shadow-sm flex flex-col justify-between h-full">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between border-b pb-3 border-fundo-secundario">
+            <h2 className="text-titulo2 font-semibold text-secundaria m-0">
+              Tarefas de {dataExibicao}
             </h2>
-            <p className="text-paragrafo text-texto-secundaria">
-              {dataExibicao}
-            </p>
           </div>
-        </div>
 
-        <div className="flex flex-col gap-3 my-4">
           {loading ? (
-            <div className="flex justify-center items-center py-10">
-              <Spin
-                indicator={<LoadingOutlined style={{ fontSize: 32 }} spin />}
-              />
+            <div className="flex justify-center py-8">
+              <Spin size="large" />
             </div>
-          ) : tarefas.length > 0 ? (
-            tarefas.map((tarefa) => {
-              const statusInfo = obterStatusInfo(tarefa);
-              const horaFormatada = dayjs(tarefa.due_date).format("HH:mm");
-              const nomeCategoria =
-                (tarefa.categories?.name as string) || "Sem categoria";
-
-              return (
-                <div
-                  key={tarefa.id}
-                  onClick={() => router.push(`/tarefas/${tarefa.id}`)}
-                  className="flex items-center justify-between p-4 bg-fundo/40 rounded-lg border border-fundo hover:border-primaria/50 transition-all cursor-pointer group"
-                >
-                  <div className="flex flex-col gap-1 w-full">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-paragrafo font-bold text-secundaria group-hover:text-primaria transition-colors">
-                        {tarefa.title}
-                      </h3>
-                    </div>
-
-                    <p className="text-texto-secundaria text-paragrafo line-clamp-1">
-                      {tarefa.description || "Sem descrição adicional"}
-                    </p>
-
-                    <div className="flex items-center gap-4 mt-1">
-                      <div className="flex items-center gap-1 text-texto-secundaria text-paragrafo">
-                        <ClockCircleOutlined />
-                        <p>{horaFormatada}</p>
-                      </div>
-
-                      <span
-                        className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                        style={{
-                          backgroundColor: `${statusInfo.color}15`,
-                          color: statusInfo.color,
-                        }}
-                      >
-                        {statusInfo.label}
-                      </span>
-
-                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                        {nomeCategoria}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
           ) : (
-            <div className="text-center py-8 text-texto-secundaria text-paragrafo bg-fundo-secundario/50 border border-dashed rounded-lg p-4">
-              Nenhuma tarefa agendada para este dia.
+            <div className="space-y-3">
+              {tasks.length > 0 ? (
+                tasks.map((tarefa) => {
+                  const statusInfo = obterStatusInfo(tarefa);
+                  const horaFormatada = tarefa.due_date
+                    ? dayjs(tarefa.due_date).format("HH:mm")
+                    : "Sem hora";
+                  const nomeCategoria =
+                    (tarefa as iTask & { categories?: { name: string } })
+                      .categories?.name || "Sem categoria";
+
+                  return (
+                    <div
+                      key={tarefa.id}
+                      onClick={() => router.push(`/tarefas/${tarefa.id}`)}
+                      className="p-4 rounded-xl border border-fundo bg-fundo hover:border-primaria/50 transition-all cursor-pointer flex items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1 flex-1">
+                        <h3
+                          className={`text-titulo3 font-medium m-0 ${
+                            tarefa.is_completed
+                              ? "line-through text-texto-secundaria"
+                              : "text-secundaria"
+                          }`}
+                        >
+                          {tarefa.title}
+                        </h3>
+                        <p className="text-paragrafo text-texto-secundaria line-clamp-1 m-0">
+                          {tarefa.description || "Sem descrição adicional"}
+                        </p>
+
+                        <div className="flex items-center gap-4 mt-2">
+                          <div className="flex items-center gap-1 text-texto-secundaria text-paragrafo">
+                            <ClockCircleOutlined />
+                            <span>{horaFormatada}</span>
+                          </div>
+
+                          <span
+                            className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                            style={{
+                              backgroundColor: `${statusInfo.color}15`,
+                              color: statusInfo.color,
+                            }}
+                          >
+                            {statusInfo.label}
+                          </span>
+
+                          <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-fundo-secundario text-texto-secundaria border border-fundo">
+                            {nomeCategoria}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-8 text-texto-secundaria text-paragrafo bg-fundo/40 border border-dashed rounded-lg p-4">
+                  Nenhuma tarefa agendada para este dia.
+                </div>
+              )}
             </div>
           )}
         </div>

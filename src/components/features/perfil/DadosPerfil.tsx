@@ -38,44 +38,39 @@ export default function DadosPerfil() {
       <Card className="shadow-md bg-fundo-secundario border border-fundo">
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <Avatar
-            size={96}
-            className="bg-primaria text-fundo font-bold text-2xl flex items-center justify-center shrink-0"
+            size={80}
+            className="bg-primaria text-fundo font-bold text-titulo1"
           >
             {getInitials(name)}
           </Avatar>
-
-          <div className="flex-1 text-center sm:text-left space-y-2">
+          <div className="space-y-1 text-center sm:text-left">
             <h2 className="text-titulo2 font-bold text-secundaria m-0">
               {name}
             </h2>
-
-            <div className="flex items-center justify-center sm:justify-start gap-2 text-texto-secundaria text-paragrafo">
-              <Mail size={18} />
-              <span>{email}</span>
-            </div>
+            <p className="text-texto-secundaria text-paragrafo flex items-center justify-center sm:justify-start gap-1 m-0">
+              <Mail size={16} /> {email}
+            </p>
           </div>
         </div>
       </Card>
 
-      {/* Cartão de Preferências de Acessibilidade */}
+      {/* Preferências de Acessibilidade */}
       <Card
-        className="shadow-md bg-fundo-secundario border border-fundo"
         title={
-          <div className="flex items-center gap-2 text-secundaria font-semibold text-titulo3">
-            <Settings size={22} className="text-primaria" />
-            Preferências de Acessibilidade
-          </div>
+          <span className="flex items-center gap-2 text-titulo2 text-secundaria">
+            <Settings size={20} /> Preferências de Acessibilidade
+          </span>
         }
         extra={
           <Button
             type="primary"
             icon={<Pen size={16} />}
             onClick={() => router.push("/acessibilidade")}
-            className="flex items-center gap-1 font-medium"
           >
             Editar
           </Button>
         }
+        className="shadow-md bg-fundo-secundario border border-fundo"
       >
         {preferences ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -86,7 +81,7 @@ export default function DadosPerfil() {
                   Tamanho da Fonte
                 </h4>
                 <p className="text-xs text-texto-secundaria m-0">
-                  Escala de texto na interface
+                  Escala de texto no sistema
                 </p>
               </div>
               <Tag
@@ -97,83 +92,64 @@ export default function DadosPerfil() {
               </Tag>
             </div>
 
-            {/* Alto Contraste */}
+            {/* Contraste Elevado */}
             <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
               <div>
                 <h4 className="font-semibold text-secundaria text-paragrafo m-0">
-                  Modo Alto Contraste
+                  Alto Contraste
                 </h4>
                 <p className="text-xs text-texto-secundaria m-0">
-                  Aumento de contraste visual
+                  Esquema de cores ajustado
                 </p>
               </div>
               <Tag
                 color={preferences.contrast_level ? "green" : "default"}
+                icon={
+                  preferences.contrast_level ? (
+                    <CheckCircle2 size={12} className="inline mr-1" />
+                  ) : (
+                    <XCircle size={12} className="inline mr-1" />
+                  )
+                }
                 className="text-paragrafo py-0.5 px-3 font-semibold flex items-center"
               >
-                {preferences.contrast_level ? (
-                  <CheckCircle2 size={12} className="inline mr-1" />
-                ) : (
-                  <XCircle size={12} className="inline mr-1" />
-                )}
                 {formatPreferenceStatus(preferences.contrast_level)}
               </Tag>
             </div>
 
-            {/* Espaçamento das Opções */}
+            {/* Espaçamento Expandido */}
             <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
               <div>
                 <h4 className="font-semibold text-secundaria text-paragrafo m-0">
-                  Espaçamento Ampliado
+                  Espaçamento Expandido
                 </h4>
                 <p className="text-xs text-texto-secundaria m-0">
-                  Aumento na distância entre elementos
+                  Mais espaço entre elementos
                 </p>
               </div>
               <Tag
                 color={preferences.high_element_spacing ? "green" : "default"}
+                icon={
+                  preferences.high_element_spacing ? (
+                    <CheckCircle2 size={12} className="inline mr-1" />
+                  ) : (
+                    <XCircle size={12} className="inline mr-1" />
+                  )
+                }
                 className="text-paragrafo py-0.5 px-3 font-semibold flex items-center"
               >
-                {preferences.high_element_spacing ? (
-                  <CheckCircle2 size={12} className="inline mr-1" />
-                ) : (
-                  <XCircle size={12} className="inline mr-1" />
-                )}
                 {formatPreferenceStatus(preferences.high_element_spacing)}
               </Tag>
             </div>
 
-            {/* Tema Escuro */}
+            {/* Feedback Visual Extra */}
             <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
               <div>
                 <h4 className="font-semibold text-secundaria text-paragrafo m-0">
-                  Modo Escuro
+                  Feedback Visual Extra
                 </h4>
                 <p className="text-xs text-texto-secundaria m-0">
-                  Interface em cores escuras
-                </p>
-              </div>
-              <Tag
-                color={preferences.ui_mode ? "purple" : "default"}
-                className="text-paragrafo py-0.5 px-3 font-semibold flex items-center"
-              >
-                {preferences.ui_mode ? (
-                  <CheckCircle2 size={12} className="inline mr-1" />
-                ) : (
-                  <XCircle size={12} className="inline mr-1" />
-                )}
-                {formatPreferenceStatus(preferences.ui_mode)}
-              </Tag>
-            </div>
-
-            {/* Destaque Visual em Foco */}
-            <div className="flex justify-between items-center p-4 bg-fundo/40 rounded-lg border border-fundo/50">
-              <div>
-                <h4 className="font-semibold text-secundaria text-paragrafo m-0">
-                  Destaque Visual
-                </h4>
-                <p className="text-xs text-texto-secundaria m-0">
-                  Feedback e bordas ao focar botoes
+                  Destaques visuais interativos
                 </p>
               </div>
               <Tag

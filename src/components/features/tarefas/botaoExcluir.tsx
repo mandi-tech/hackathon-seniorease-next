@@ -36,32 +36,29 @@ export default function BotaoExcluir({
     try {
       if (arquivos && arquivos.length > 0) {
         const caminhos = arquivos.map((f) => f.file_path);
-        await supabase.storage.from("task-attachments").remove(caminhos);
+        await supabase.storage.from("task-files").remove(caminhos);
       }
 
       const { error } = await supabase
         .from(tabelaAlvo)
         .delete()
-        .eq("id", idTarget)
-        .eq("user_id", user?.id);
+        .eq("id", idTarget);
 
       if (error) throw error;
 
       notification.success({
-        title: "Sucesso!",
-        description: `${
-          tipo === "tarefa" ? "Tarefa" : "Passo"
-        } excluído(a) com sucesso.`,
+        title: `${tipo === "tarefa" ? "Tarefa" : "Passo"} excluído(a)`,
+        message: "O item foi removido com sucesso.",
       });
 
       router.push(rotaRedirecionamento);
       router.refresh();
-    } catch (error: unknown) {
-      const err = error as Error;
-      console.error(err);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro desconhecido ao excluir";
       notification.error({
         title: "Erro ao excluir",
-        description: err.message || "Não foi possível excluir o item.",
+        message: errorMessage,
       });
     } finally {
       setExecutando(false);
@@ -110,7 +107,7 @@ export default function BotaoExcluir({
       icon={executando ? <LoadingOutlined spin /> : <Trash2 size={22} />}
       onClick={handleDispararFluxo}
     >
-      Excluir {tipo === "tarefa" ? "Tarefa" : "Etapa"}
+      Excluir
     </Button>
   );
 }

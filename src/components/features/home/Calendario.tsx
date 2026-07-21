@@ -8,7 +8,6 @@ import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
-
 import { iTask } from "@/src/libs/types/iTarefa";
 
 dayjs.locale("pt-br");
@@ -16,13 +15,6 @@ dayjs.locale("pt-br");
 export interface iCalendarioProps {
   className?: string;
 }
-
-const listaStatus = [
-  { value: "pendente", color: "#2563eb" },
-  { value: "em_andamento", color: "#f59e0b" },
-  { value: "concluida", color: "#10b981" },
-  { value: "em_atraso", color: "#ef4444" },
-];
 
 export default function Calendario({ className }: iCalendarioProps) {
   const router = useRouter();
@@ -35,23 +27,33 @@ export default function Calendario({ className }: iCalendarioProps) {
   const [tasks, setTasks] = useState<iTask[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Deriva o estado inicial da data diretamente a partir da URL
+  const dataParam = searchParams.get("data");
+
   const [value, setValue] = useState(() => {
-    const dataParam = searchParams.get("data");
     if (dataParam) {
-      const parsedDate = dayjs(dataParam, "DD-MM-YYYY");
-      if (parsedDate.isValid()) return parsedDate;
+      const parsed = dayjs(dataParam, "DD-MM-YYYY");
+      if (parsed.isValid()) return parsed;
     }
     return dayjs();
   });
 
+  // Atualização de sincronia com a URL sem re-trigger direto de efeito
+  useEffect(() => {
+    if (dataParam) {
+      const parsedDate = dayjs(dataParam, "DD-MM-YYYY");
+      if (parsedDate.isValid()) {
+        setValue((prev) =>
+          parsedDate.isSame(prev, "day") ? prev : parsedDate,
+        );
+      }
+    }
+  }, [dataParam]);
+
   const carregarTarefasDoMes = useCallback(
     async (dataAtual: dayjs.Dayjs) => {
-      const userId = user?.id;
-      if (!userId) return;
+      if (!user?.id) return;
 
       setLoading(true);
-
       try {
         const inicioMes = dataAtual.startOf("month").format("YYYY-MM-DD");
         const fimMes = dataAtual.endOf("month").format("YYYY-MM-DD");
@@ -59,18 +61,17 @@ export default function Calendario({ className }: iCalendarioProps) {
         const { data, error } = await supabase
           .from("tasks")
           .select("*")
-          .eq("user_id", userId)
+          .eq("user_id", user.id)
           .gte("due_date", inicioMes)
           .lte("due_date", fimMes);
 
         if (error) throw error;
-
         setTasks(data || []);
-      } catch (error: unknown) {
-        console.error("Erro ao carregar tarefas do mês:", error);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Erro desconhecido";
         notification.error({
-          title: "Erro ao carregar tarefas",
-          description: "Não foi possível carregar o calendário.",
+          title: "Erro ao carregar calendário",
+          message: msg,
         });
       } finally {
         setLoading(false);
@@ -79,74 +80,85 @@ export default function Calendario({ className }: iCalendarioProps) {
     [user, supabase, notification],
   );
 
-  // Sincroniza a busca de tarefas quando 'value' muda ou o usuário autentica
   useEffect(() => {
-    if (user?.id) {
+    let active = true;
+    if (active) {
       carregarTarefasDoMes(value);
     }
-  }, [value, user?.id, carregarTarefasDoMes]);
+    return () => {
+      active = false;
+    };
+  }, [value, carregarTarefasDoMes]);
 
   const obterStatusDaTarefa = (tarefa: iTask) => {
     if (tarefa.is_completed) return "concluida";
-    if (dayjs(tarefa.due_date).isBefore(dayjs(), "day")) return "em_atraso";
+    const hoje = dayjs().startOf("day");
+    const dataVencimento = dayjs(tarefa.due_date).startOf("day");
+    if (dataVencimento.isBefore(hoje)) return "em_atraso";
     return "pendente";
   };
 
   const handleSelect = (newValue: dayjs.Dayjs) => {
     setValue(newValue);
-    const dataFormatada = newValue.format("DD-MM-YYYY");
     const params = new URLSearchParams(searchParams.toString());
-    params.set("data", dataFormatada);
+    params.set("data", newValue.format("DD-MM-YYYY"));
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const handleMudarMes = (delta: number) => {
-    const novoValor = value.add(delta, "month");
-    setValue(novoValor);
+  const handleMonthChange = (amount: number) => {
+    const newValue = value.add(amount, "month");
+    handleSelect(newValue);
   };
 
   return (
     <section
-      className={`bg-fundo-secundario rounded-xl shadow-md p-4 flex flex-col justify-between ${className}`}
+      className={`w-full max-w-5xl mx-auto p-4 bg-fundo text-texto ${className || ""}`}
     >
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-titulo2 text-secundaria font-bold capitalize">
-            {value.format("MMMM YYYY")}
-          </h2>
-          <p className="text-paragrafo text-texto-secundaria">
-            Selecione um dia para visualizar as tarefas.
-          </p>
-        </div>
+      {/* Cabeçalho do Calendário */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-fundo-secundario">
+        <h1 className="text-titulo1 font-bold text-primaria flex items-center gap-2 m-0">
+          Calendário de Tarefas
+        </h1>
 
         <div className="flex items-center gap-2">
           <Button
-            variant="outlined"
-            color="primary"
             icon={<LeftOutlined />}
-            onClick={() => handleMudarMes(-1)}
+            onClick={() => handleMonthChange(-1)}
+            className="text-paragrafo"
             aria-label="Mês anterior"
           />
+          <span className="text-titulo3 font-semibold text-texto px-2 min-w-32 text-center capitalize">
+            {value.format("MMMM YYYY")}
+          </span>
           <Button
-            type="primary"
-            onClick={() => handleSelect(dayjs())}
-            size="middle"
-          >
-            Hoje
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
             icon={<RightOutlined />}
-            onClick={() => handleMudarMes(1)}
+            onClick={() => handleMonthChange(1)}
+            className="text-paragrafo"
             aria-label="Próximo mês"
           />
         </div>
       </div>
 
-      <div className="relative">
+      {/* Legenda de Status de Acessibilidade */}
+      <div className="flex flex-wrap items-center gap-4 mb-4 text-paragrafo text-texto-secundaria">
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-blue-500 inline-block" />{" "}
+          Pendente
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />{" "}
+          Concluída
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-rose-500 inline-block" /> Em
+          Atraso
+        </span>
+      </div>
+
+      {/* Conteúdo do Calendário */}
+      <div className="bg-fundo-secundario rounded-lg border border-fundo p-2 shadow-sm relative">
         {loading && (
-          <div className="absolute inset-0 bg-fundo-secundario/50 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-lg">
+          <div className="absolute inset-0 bg-fundo/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
             <Spin size="large" />
           </div>
         )}
@@ -154,58 +166,61 @@ export default function Calendario({ className }: iCalendarioProps) {
         <Calendar
           value={value}
           onSelect={handleSelect}
-          headerRender={() => null}
-          cellRender={(date) => {
-            const dataString = date.format("YYYY-MM-DD");
-            const tarefasDoDia = tasks.filter((t) =>
-              t.due_date?.startsWith(dataString),
+          headerRender={() => null} // Oculta o cabeçalho padrão para usar o cabeçalho acessível
+          cellRender={(current) => {
+            const dataString = current.format("YYYY-MM-DD");
+            const tarefasDoDia = tasks.filter(
+              (t) => dayjs(t.due_date).format("YYYY-MM-DD") === dataString,
             );
 
             return (
-              <div className="h-full flex flex-col justify-between p-1 overflow-hidden">
-                <ul className="m-0 p-0 list-none space-y-1 hidden sm:block">
+              <div className="h-full flex flex-col justify-between overflow-hidden p-1">
+                {/* Visualização para Desktop */}
+                <ul className="hidden sm:block space-y-1 p-0 m-0 list-none">
                   {tarefasDoDia.slice(0, 3).map((tarefa) => {
-                    const statusCalculado = obterStatusDaTarefa(tarefa);
-                    const statusConfig = listaStatus.find(
-                      (s) => s.value === statusCalculado,
-                    );
+                    const status = obterStatusDaTarefa(tarefa);
+                    const corDot =
+                      status === "concluida"
+                        ? "bg-emerald-500"
+                        : status === "em_atraso"
+                          ? "bg-rose-500"
+                          : "bg-blue-500";
 
                     return (
-                      <li key={tarefa.id} className="text-[11px] truncate">
-                        <span className="flex items-center gap-1">
-                          <div
-                            className="w-2 h-2 rounded-full shrink-0"
-                            style={{
-                              backgroundColor: statusConfig?.color || "#2563eb",
-                            }}
-                          ></div>
-                          <p className="text-texto truncate">{tarefa.title}</p>
+                      <li key={tarefa.id} className="text-paragrafo-pnl">
+                        <span className="flex items-center gap-1.5 rounded px-1 py-0.5 bg-fundo">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${corDot}`}
+                          />
+                          <p className="text-texto truncate m-0 font-medium">
+                            {tarefa.title}
+                          </p>
                         </span>
                       </li>
                     );
                   })}
                   {tarefasDoDia.length > 3 && (
-                    <span className="text-[10px] text-gray-400 pl-2">
+                    <span className="text-paragrafo-pnl text-texto-secundaria pl-1 block font-semibold">
                       +{tarefasDoDia.length - 3} mais
                     </span>
                   )}
                 </ul>
 
-                {/* Exibição em pontinhos coloridos para Mobile */}
+                {/* Indicadores para Dispositivos Móveis */}
                 {tarefasDoDia.length > 0 && (
                   <div className="flex sm:hidden justify-center gap-1 mt-auto pb-1 shrink-0">
                     {tarefasDoDia.map((tarefa) => {
-                      const statusCalculado = obterStatusDaTarefa(tarefa);
+                      const status = obterStatusDaTarefa(tarefa);
+                      const corDot =
+                        status === "concluida"
+                          ? "bg-emerald-500"
+                          : status === "em_atraso"
+                            ? "bg-rose-500"
+                            : "bg-blue-500";
                       return (
                         <span
                           key={tarefa.id}
-                          className={`w-1.5 h-1.5 rounded-full block ${
-                            statusCalculado === "concluida"
-                              ? "bg-emerald-500"
-                              : statusCalculado === "em_atraso"
-                                ? "bg-rose-500"
-                                : "bg-blue-500"
-                          }`}
+                          className={`w-2 h-2 rounded-full block ${corDot}`}
                         />
                       );
                     })}
