@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { App, ConfigProvider, DatePicker, theme as antdTheme } from "antd";
+import { App, ConfigProvider, theme as antdTheme } from "antd";
 import type { ThemeConfig } from "antd";
 import ptBR from "antd/locale/pt_BR";
 import {
@@ -25,8 +25,6 @@ export default function AntdThemeProvider({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-
     const checkThemeAndA11y = () => {
       // --- Lógica de Contraste e Tema ---
       const isHighContrastAttr =
@@ -60,6 +58,7 @@ export default function AntdThemeProvider({
     };
 
     checkThemeAndA11y();
+    setMounted(true);
 
     // Media Queries listeners
     const darkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -104,7 +103,6 @@ export default function AntdThemeProvider({
 
   // Função auxiliar para injetar modificadores de espaçamento e padding
   const getSpacingTokens = (scale: SpacingScale) => {
-    // ControlHeight dita a altura de inputs e botões, paddingContent e margin mudam os respiros internos
     switch (scale) {
       case "compact":
         return { padding: 8, margin: 8, controlHeight: 28 };
@@ -121,13 +119,11 @@ export default function AntdThemeProvider({
     fontScale: FontSizeScale,
     spaceScale: SpacingScale,
   ): ThemeConfig => {
-    // 1. Obtém os tokens de acessibilidade computados
     const fontTokens = getFontTokens(fontScale);
     const spacingTokens = getSpacingTokens(spaceScale);
     let configCalendar = {};
     let configComponents = {};
 
-    // 2. Mapeamento base da paleta de cores
     let tokenCores = {
       colorPrimary: paletaClara.primaria,
       colorSuccess: paletaClara.sucesso,
@@ -183,7 +179,6 @@ export default function AntdThemeProvider({
       token: {
         ...tokenCores,
         fontFamily: "var(--font-sans)",
-        // Injeta dinamicamente os tamanhos e espaçamentos calculados
         ...fontTokens,
         ...spacingTokens,
         ...(mode === "high-contrast" && {

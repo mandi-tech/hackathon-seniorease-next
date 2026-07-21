@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClockCircleOutlined, LoadingOutlined } from "@ant-design/icons";
 import { App, Spin, message } from "antd";
@@ -17,7 +17,6 @@ export interface iListaTarefasProps {
   className?: string;
 }
 
-// Configuração visual estática para mapear o status com base no booleano e tempo
 const obterStatusInfo = (tarefa: iTask) => {
   if (tarefa.is_completed) {
     return { label: "Concluída", color: "#10b981" };
@@ -38,36 +37,29 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
   const dataParam = searchParams.get("data");
   const router = useRouter();
   const { user } = useAuth();
-  const { notification } = App.useApp();
   const supabase = createClient();
+  const { notification } = App.useApp();
 
-  // Estados locais para dados e controle de loading
   const [tarefas, setTarefas] = useState<iTask[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Define a data alvo baseando-se no parâmetro da URL ou no dia de hoje
-  const dataAlvoStr = dataParam || dayjs().format("DD-MM-YYYY");
-  const dataObjeto = dayjs(dataAlvoStr, "DD-MM-YYYY").isValid()
-    ? dayjs(dataAlvoStr, "DD-MM-YYYY")
-    : dayjs();
-
-  // Função isolada para buscar as tarefas do dia específico no banco
-  const buscarTarefasDoDia = async () => {
-    if (!user) return;
+  const buscarTarefasDoDia = useCallback(async () => {
+    if (!user?.id) return;
 
     setLoading(true);
-    try {
-      // Define o primeiro e o último milissegundo do dia selecionado
-      const inicioDoDia = dataObjeto.startOf("day").toISOString();
-      const fimDoDia = dataObjeto.endOf("day").toISOString();
 
-      // Busca as tarefas daquele dia trazendo junto o nome da categoria (JOIN implicit)
+    const dataBase = dataParam ? dayjs(dataParam, "DD-MM-YYYY") : dayjs();
+
+    const inicioDoDia = dataBase.startOf("day").toISOString();
+    const fimDoDia = dataBase.endOf("day").toISOString();
+
+    try {
       const { data, error } = await supabase
         .from("tasks")
         .select(
           `
           *,
-          categories ( name )
+          category:categories(name)
         `,
         )
         .eq("user_id", user.id)
@@ -78,21 +70,20 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
       if (error) throw error;
 
       setTarefas(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao carregar tarefas do dia:", error);
-      notification.error({
-        title: "Erro ao carregar tarefas",
-        message: "Não foi possível carregar a agenda deste dia.",
-      });
     } finally {
       setLoading(false);
     }
-  };
-
-  // Dispara a busca sempre que o dia mudar na URL ou o usuário logar
+  }, [user?.id, dataParam, supabase]);
   useEffect(() => {
     buscarTarefasDoDia();
-  }, [dataParam, user]);
+  }, [buscarTarefasDoDia]);
+
+  const dataAlvoStr = dataParam || dayjs().format("DD-MM-YYYY");
+  const dataObjeto = dayjs(dataAlvoStr, "DD-MM-YYYY").isValid()
+    ? dayjs(dataAlvoStr, "DD-MM-YYYY")
+    : dayjs();
 
   const obtenerDataFormatada = () => {
     const dataFormatada = dataObjeto.format("dddd, DD [de] MMMM [de] YYYY");

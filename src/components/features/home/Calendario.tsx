@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Calendar, Button, Spin, message, App } from "antd";
+import { Calendar, Button, Spin, App } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
@@ -48,44 +48,51 @@ export default function Calendario({ className }: iCalendarioProps) {
     const dataParam = searchParams.get("data");
     if (dataParam) {
       const parsedDate = dayjs(dataParam, "DD-MM-YYYY");
-      if (parsedDate.isValid() && !parsedDate.isSame(value, "day")) {
-        setValue(parsedDate);
+      if (parsedDate.isValid()) {
+        setValue((prev) =>
+          parsedDate.isSame(prev, "day") ? prev : parsedDate,
+        );
       }
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    async function buscarTarefasDoMes() {
-      if (!user) return;
+  const carregarTarefasDoMes = useCallback(
+    async (dataAtual: dayjs.Dayjs) => {
+      if (!user?.id) return;
 
       setLoading(true);
-      try {
-        const primeiroDiaDoMes = value.startOf("month").toISOString();
-        const ultimoDiaDoMes = value.endOf("month").toISOString();
 
+      const inicioMes = dataAtual.startOf("month").format("YYYY-MM-DD");
+      const fimMes = dataAtual.endOf("month").format("YYYY-MM-DD");
+
+      try {
         const { data, error } = await supabase
           .from("tasks")
           .select("*")
           .eq("user_id", user.id)
-          .gte("due_date", primeiroDiaDoMes)
-          .lte("due_date", ultimoDiaDoMes);
+          .gte("due_date", inicioMes)
+          .lte("due_date", fimMes);
 
         if (error) throw error;
 
         setTasks(data || []);
-      } catch (error: any) {
-        console.error("Erro ao buscar tarefas do calendário:", error);
+      } catch (err: unknown) {
+        console.error("Erro ao carregar tarefas do calendário:", err);
         notification.error({
-          title: "Erro ao carregar tarefas",
-          message: "Não foi possível carregar as tarefas deste mês.",
+          title: "Erro ao carregar agenda",
+          description:
+            "Não foi possível sincronizar suas tarefas com o calendário.",
         });
       } finally {
         setLoading(false);
       }
-    }
+    },
+    [user?.id, supabase, notification],
+  );
 
-    buscarTarefasDoMes();
-  }, [value.month(), value.year(), user]);
+  useEffect(() => {
+    carregarTarefasDoMes(value);
+  }, [value, carregarTarefasDoMes]);
 
   const obterStatusDaTarefa = (tarefa: iTask) => {
     if (tarefa.is_completed) return "concluida";

@@ -12,18 +12,29 @@ import {
   message,
   App,
 } from "antd";
+import type { UploadFile } from "antd/es/upload/interface";
 import { UploadOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { iFileAttachment, iMainTask } from "@/src/libs/types/iTarefa";
 import { Pencil, Plus } from "lucide-react";
 
 export interface iModalTarefaProps {
   tipo: "tarefa" | "subtarefa";
   onSuccess?: () => void;
-  dadosEdicao?: any; // Se passado, o modal entra em modo Edição
-  controlOpen?: boolean; // Permite controle externo de abertura
-  setControlOpen?: (open: boolean) => void; // Setter para o controle externo
+  dadosEdicao?: iMainTask;
+  controlOpen?: boolean;
+  setControlOpen?: (open: boolean) => void;
+}
+
+interface FormTaskValues {
+  title: string;
+  description: string;
+  due_date: Dayjs;
+  hora: string;
+  category_id: string;
+  task_files?: UploadFile[];
 }
 
 interface iCategoriaOption {
@@ -41,13 +52,12 @@ export default function ModalTarefa({
   const [internalOpen, setInternalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [categorias, setCategorias] = useState<iCategoriaOption[]>([]);
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<FormTaskValues>();
   const { notification } = App.useApp();
 
   const { user, preferences } = useAuth();
   const supabase = createClient();
 
-  // Determina se o modal está aberto usando controle interno ou externo
   const isModoEdicao = !!dadosEdicao;
   const open = controlOpen !== undefined ? controlOpen : internalOpen;
 
@@ -59,7 +69,6 @@ export default function ModalTarefa({
     }
   };
 
-  // Carrega as categorias do banco de dados ao montar
   useEffect(() => {
     async function carregarCategorias() {
       try {
@@ -82,32 +91,30 @@ export default function ModalTarefa({
       }
     }
     carregarCategorias();
-  }, []);
+  }, [supabase]);
 
-  // Efeito para preencher ou resetar o formulário baseado em dadosEdicao quando o modal abrir
   useEffect(() => {
     if (open) {
       if (isModoEdicao && dadosEdicao) {
-        // Conversão de data e hora vinda do banco (due_date timestamp)
         const dataMetadados = dayjs(dadosEdicao.due_date);
 
-        // Formata os arquivos existentes para o padrão exigido pelo componente Upload do AntD
-        const arquivosFormatados =
-          dadosEdicao.task_files?.map((file: any) => ({
+        const arquivosFormatados: UploadFile[] =
+          dadosEdicao.task_files?.map((file: iFileAttachment) => ({
             uid: file.id,
             name: file.file_name,
             status: "done",
             url: supabase.storage
               .from("task-attachments")
               .getPublicUrl(file.file_path).data.publicUrl,
-            originFileObj: null, // Arquivo já persistido no bucket
           })) || [];
 
         form.setFieldsValue({
           title: dadosEdicao.title,
           description: dadosEdicao.description,
-          due_date: dataMetadados.isValid() ? dataMetadados : null,
-          hora: dataMetadados.isValid() ? dataMetadados.format("HH:mm") : null,
+          due_date: dataMetadados.isValid() ? dataMetadados : undefined,
+          hora: dataMetadados.isValid()
+            ? dataMetadados.format("HH:mm")
+            : undefined,
           category_id: dadosEdicao.category_id,
           task_files: arquivosFormatados,
         });
@@ -115,16 +122,15 @@ export default function ModalTarefa({
         form.resetFields();
       }
     }
-  }, [open, dadosEdicao, isModoEdicao, form]);
+  }, [open, dadosEdicao, isModoEdicao, form, supabase]);
 
-  const handleSalvarTarefa = async (values: any) => {
+  const handleSalvarTarefa = async (values: FormTaskValues) => {
     setLoading(true);
     try {
       if (!user) {
         throw new Error("Usuário não autenticado no sistema.");
       }
 
-      // 1. Combinação e parse da data e hora
       const dataBase = values.due_date.format("YYYY-MM-DD");
       const horaBase = values.hora;
       const stringDataHoraCompleta = `${dataBase}T${horaBase}:00`;
@@ -141,7 +147,6 @@ export default function ModalTarefa({
       };
 
       if (isModoEdicao) {
-        // 2. Modo Edição: Executa o UPDATE no Supabase
         const { error: updateError } = await supabase
           .from("tasks")
           .update(payload)
@@ -149,7 +154,6 @@ export default function ModalTarefa({
 
         if (updateError) throw updateError;
       } else {
-        // 3. Modo Criação: Executa o INSERT no Supabase
         const { data: taskData, error: taskError } = await supabase
           .from("tasks")
           .insert([{ ...payload, is_completed: false }])
@@ -160,11 +164,9 @@ export default function ModalTarefa({
         targetTaskId = taskData?.id;
       }
 
-      // 4. Tratamento de uploads de novos arquivos selecionados
       const fileList = values.task_files || [];
       if (fileList.length > 0 && targetTaskId) {
         for (const file of fileList) {
-          // Ignora arquivos que já estavam salvos anteriormente (eles não possuem originFileObj)
           const originFile = file.originFileObj;
           if (!originFile) continue;
 
@@ -204,11 +206,11 @@ export default function ModalTarefa({
       handleSetOpen(false);
 
       if (onSuccess) onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao salvar tarefa:", error);
-      message.error(
-        `Erro ao salvar tarefa: ${error.message || "Tente novamente."}`,
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : "Tente novamente.";
+      message.error(`Erro ao salvar tarefa: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -216,7 +218,6 @@ export default function ModalTarefa({
 
   return (
     <>
-      {/* Apenas renderiza o botão gatilho padrão se o modal não estiver sendo controlado de forma externa */}
       {controlOpen === undefined && (
         <Button
           type="primary"
@@ -337,7 +338,9 @@ export default function ModalTarefa({
             label="Documentos Anexados"
             name="task_files"
             valuePropName="fileList"
-            getValueFromEvent={(e: any) => (Array.isArray(e) ? e : e?.fileList)}
+            getValueFromEvent={(
+              e: UploadFile[] | { fileList: UploadFile[] },
+            ) => (Array.isArray(e) ? e : e?.fileList)}
           >
             <Upload multiple beforeUpload={() => false}>
               <Button icon={<UploadOutlined />} size="large">

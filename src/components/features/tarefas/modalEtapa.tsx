@@ -1,18 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Modal, Form, Input, Upload, message, App } from "antd";
+import { Button, Modal, Form, Input, Upload, App } from "antd";
+import type { UploadFile } from "antd/es/upload/interface";
 import { UploadOutlined } from "@ant-design/icons";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { iFileAttachment, iTaskStep } from "@/src/libs/types/iTarefa";
 import { Pencil, Plus } from "lucide-react";
 
 export interface iModalEtapaProps {
   idTarefaPai: string;
   onSuccess?: () => void;
-  dadosEdicao?: any;
+  dadosEdicao?: iTaskStep;
   controlOpen?: boolean;
   setControlOpen?: (open: boolean) => void;
+}
+
+interface FormStepValues {
+  instruction: string;
+  task_files?: UploadFile[];
 }
 
 export default function ModalEtapa({
@@ -24,7 +31,7 @@ export default function ModalEtapa({
 }: iModalEtapaProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<FormStepValues>();
   const { notification } = App.useApp();
 
   const { user } = useAuth();
@@ -44,15 +51,14 @@ export default function ModalEtapa({
   useEffect(() => {
     if (open) {
       if (isModoEdicao && dadosEdicao) {
-        const arquivosFormatados =
-          dadosEdicao.task_files?.map((file: any) => ({
+        const arquivosFormatados: UploadFile[] =
+          dadosEdicao.task_files?.map((file: iFileAttachment) => ({
             uid: file.id,
             name: file.file_name,
             status: "done",
             url: supabase.storage
               .from("task-attachments")
               .getPublicUrl(file.file_path).data.publicUrl,
-            originFileObj: null,
           })) || [];
 
         form.setFieldsValue({
@@ -63,9 +69,9 @@ export default function ModalEtapa({
         form.resetFields();
       }
     }
-  }, [open, dadosEdicao, isModoEdicao, form]);
+  }, [open, dadosEdicao, isModoEdicao, form, supabase]);
 
-  const handleSalvarEtapa = async (values: any) => {
+  const handleSalvarEtapa = async (values: FormStepValues) => {
     setLoading(true);
     try {
       if (!user) throw new Error("Usuário não autenticado.");
@@ -156,11 +162,13 @@ export default function ModalEtapa({
       handleSetOpen(false);
 
       if (onSuccess) onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao salvar etapa:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Tente novamente.";
       notification.error({
         title: "Erro ao salvar",
-        description: `Erro ao salvar: ${error.message || "Tente novamente."}`,
+        description: `Erro ao salvar: ${errorMessage}`,
       });
     } finally {
       setLoading(false);
@@ -221,7 +229,9 @@ export default function ModalEtapa({
             label="Documentos e Evidências da Etapa"
             name="task_files"
             valuePropName="fileList"
-            getValueFromEvent={(e: any) => (Array.isArray(e) ? e : e?.fileList)}
+            getValueFromEvent={(
+              e: UploadFile[] | { fileList: UploadFile[] },
+            ) => (Array.isArray(e) ? e : e?.fileList)}
           >
             <Upload multiple beforeUpload={() => false}>
               <Button icon={<UploadOutlined />}>

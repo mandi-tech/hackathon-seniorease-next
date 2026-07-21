@@ -1,16 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  Button,
-  Checkbox,
-  Tag,
-  message,
-  Breadcrumb,
-  Spin,
-  Modal,
-  App,
-} from "antd";
+import { useState, useEffect, useCallback } from "react";
+import { Button, Checkbox, Tag, Breadcrumb, Spin, App } from "antd";
 import { useRouter, useParams } from "next/navigation";
 import {
   ClockCircleOutlined,
@@ -18,9 +9,7 @@ import {
   FileTextOutlined,
   HomeOutlined,
   LoadingOutlined,
-  ExclamationCircleFilled,
 } from "@ant-design/icons";
-import { Pencil, Trash2 } from "lucide-react";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import { createClient } from "@/src/libs/supabase/client";
@@ -56,7 +45,7 @@ export default function DadosTarefa() {
 
   const modoSubtarefa = !!idSubtarefa;
 
-  const carregarEstruturaTarefa = async () => {
+  const carregarEstruturaTarefa = useCallback(async () => {
     if (!idTarefa || !user) return;
 
     setLoading(true);
@@ -100,7 +89,7 @@ export default function DadosTarefa() {
 
         setTarefaPai(data);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao carregar detalhes da tarefa:", error);
       notification.error({
         title: "Erro ao carregar detalhes da tarefa",
@@ -109,11 +98,11 @@ export default function DadosTarefa() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [idTarefa, idSubtarefa, user, supabase, notification]);
 
   useEffect(() => {
     carregarEstruturaTarefa();
-  }, [idTarefa, idSubtarefa, user]);
+  }, [carregarEstruturaTarefa]);
 
   if (loading) {
     return (
@@ -356,7 +345,7 @@ export default function DadosTarefa() {
             <ModalEtapa
               idTarefaPai={tarefaPai.id}
               onSuccess={carregarEstruturaTarefa}
-              dadosEdicao={tarefaPai}
+              dadosEdicao={subtarefaSelecionada}
             />
           ) : (
             <ModalTarefa
@@ -376,7 +365,7 @@ export default function DadosTarefa() {
       </div>
 
       <div className="flex flex-col gap-6">
-        {/* Seção de Descrição (Apenas se houver ou se for a tarefa raiz) */}
+        {/* Seção de Descrição */}
         {!modoSubtarefa && (
           <div>
             <h2 className="text-secundaria text-titulo3 font-semibold mb-2">
@@ -399,7 +388,11 @@ export default function DadosTarefa() {
               {infoExibida.arquivos.map((file) => (
                 <a
                   key={file.id}
-                  href={`${supabase.storage.from("task-attachments").getPublicUrl(file.file_path).data.publicUrl}`}
+                  href={`${
+                    supabase.storage
+                      .from("task-attachments")
+                      .getPublicUrl(file.file_path).data.publicUrl
+                  }`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 p-3 bg-fundo/50 rounded-lg border border-fundo text-paragrafo hover:border-primaria transition-colors"
@@ -414,7 +407,7 @@ export default function DadosTarefa() {
           </div>
         )}
 
-        {/* Lista de Passos/Subtarefas (Renderizada unicamente na visualização da Task pai) */}
+        {/* Lista de Passos/Subtarefas */}
         {!modoSubtarefa && (
           <div className="flex flex-col gap-4 border-t pt-4">
             <h2 className="text-secundaria text-titulo3 font-semibold">
