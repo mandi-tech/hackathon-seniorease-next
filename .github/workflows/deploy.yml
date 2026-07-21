@@ -1,12 +1,43 @@
-name: Deploy Application
+name: CD - Deploy Docker Hub
 
 on:
   push:
     branches: ["main"]
 
 jobs:
+  # ──────────────────────────────────────────────
+  # Job 1: CI rápido antes do deploy
+  # ──────────────────────────────────────────────
+  ci:
+    name: 🔍 Validação CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Executar ESLint
+        run: npm run lint
+
+      - name: Executar testes unitários
+        run: npm test
+
+  # ──────────────────────────────────────────────
+  # Job 2: Build e Push da imagem Docker
+  # ──────────────────────────────────────────────
   deploy:
-    runs-on: self-hosted
+    name: 🚀 Build & Push Docker
+    runs-on: ubuntu-latest
+    needs: ci
 
     steps:
       - name: Checkout do código
@@ -15,7 +46,7 @@ jobs:
       - name: Extrair versão do CHANGELOG.md
         id: get_version
         run: |
-          # Procura a primeira linha que comece com "## [" ou "## v" e extrai o número da versão
+          # Procura a primeira linha com formato "## [vX.Y.Z]" e extrai o número
           VERSION=$(grep -m1 -E '^## \[?v?[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
 
           if [ -z "$VERSION" ]; then
@@ -23,12 +54,39 @@ jobs:
             exit 1
           fi
 
-          echo "Versão detectada: v$VERSION"
-          # Define a variável para ser usada nos próximos passos do GitHub Actions
+          echo "✅ Versão detectada: v$VERSION"
           echo "version=v$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Executar Deploy
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build e Push da imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/seniorease-web:${{ steps.get_version.outputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/seniorease-web:latest
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Resumo do deploy
         run: |
-          chmod +x deploy.sh
-          # Passa a versão extraída dinamicamente para o script de deploy
-          ./deploy.sh ${{ steps.get_version.outputs.version }}
+          echo "## 🚀 Deploy realizado com sucesso!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Valor |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Imagem** | \`${{ secrets.DOCKERHUB_USERNAME }}/seniorease-web\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Versão** | \`${{ steps.get_version.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Tags** | \`${{ steps.get_version.outputs.version }}\`, \`latest\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
