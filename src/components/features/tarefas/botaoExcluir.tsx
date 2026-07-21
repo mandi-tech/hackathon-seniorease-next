@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { App, Button, Modal, message } from "antd";
+import { App, Button, Modal } from "antd";
 import { ExclamationCircleFilled, LoadingOutlined } from "@ant-design/icons";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -36,7 +36,7 @@ export default function BotaoExcluir({
     try {
       if (arquivos && arquivos.length > 0) {
         const caminhos = arquivos.map((f) => f.file_path);
-        await supabase.storage.from("task-attachments").remove(caminhos);
+        await supabase.storage.from("task-files").remove(caminhos);
       }
 
       const { error } = await supabase
@@ -47,15 +47,18 @@ export default function BotaoExcluir({
       if (error) throw error;
 
       notification.success({
-        title: "Sucesso!",
-        description: `${tipo === "tarefa" ? "Tarefa" : "Passo"} excluído com sucesso!`,
+        title: `${tipo === "tarefa" ? "Tarefa" : "Passo"} excluído(a)`,
+        message: "O item foi removido com sucesso.",
       });
+
       router.push(rotaRedirecionamento);
-    } catch (error: any) {
-      console.error(`Erro ao deletar ${tipo}:`, error);
+      router.refresh();
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro desconhecido ao excluir";
       notification.error({
-        title: "Erro ao deletar",
-        message: `Não foi possível excluir o/a ${tipo}.`,
+        title: "Erro ao excluir",
+        message: errorMessage,
       });
     } finally {
       setExecutando(false);
@@ -90,7 +93,6 @@ export default function BotaoExcluir({
         },
       });
     } else {
-      // Se extra_confirm for falso, deleta sumariamente sem perguntar nada
       await executarExclusaoFisica();
     }
   };
@@ -105,7 +107,7 @@ export default function BotaoExcluir({
       icon={executando ? <LoadingOutlined spin /> : <Trash2 size={22} />}
       onClick={handleDispararFluxo}
     >
-      {!preferences?.ui_mode && <>{executando ? "Excluindo..." : "Excluir"}</>}
+      {!preferences?.ui_mode ? "Excluir" : ""}
     </Button>
   );
 }
