@@ -1,18 +1,34 @@
-name: Deploy Next.js App
+name: Deploy Application
 
 on:
   push:
     branches: ["main"]
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout do Código
+      - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Executar Script de Deploy
+      - name: Extrair versão do CHANGELOG.md
+        id: get_version
+        run: |
+          # Procura a primeira linha que comece com "## [" ou "## v" e extrai o número da versão
+          VERSION=$(grep -m1 -E '^## \[?v?[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+
+          if [ -z "$VERSION" ]; then
+            echo "❌ Erro: Nenhuma versão válida foi encontrada no CHANGELOG.md!"
+            exit 1
+          fi
+
+          echo "Versão detectada: v$VERSION"
+          # Define a variável para ser usada nos próximos passos do GitHub Actions
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Executar Deploy
         run: |
           chmod +x deploy.sh
-          ./deploy.sh v1.0.0
+          # Passa a versão extraída dinamicamente para o script de deploy
+          ./deploy.sh ${{ steps.get_version.outputs.version }}
