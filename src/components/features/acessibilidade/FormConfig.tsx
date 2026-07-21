@@ -18,6 +18,15 @@ interface BooleanInputProps {
   onChange?: (value: boolean) => void;
 }
 
+interface FormValues {
+  tipo_interface: boolean;
+  tamanhoFonte: "padrao" | "grande" | "muito-grande";
+  contraste: boolean;
+  espacamento: boolean;
+  interacao: boolean;
+  seguranca: boolean;
+}
+
 const TipoInterfaceInput = ({ value, onChange }: BooleanInputProps) => (
   <div className="grid! grid-cols-1! lg:grid-cols-2! w-full! gap-5! items-center">
     <Button
@@ -105,7 +114,7 @@ const EspacamentoInput = ({ value, onChange }: BooleanInputProps) => (
 );
 
 export default function FormConfig() {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<FormValues>();
   const { notification } = App.useApp();
   const { preferences, updatePreferences } = useAuth();
   const router = useRouter();
@@ -125,11 +134,11 @@ export default function FormConfig() {
     }
   }, [preferences, form]);
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: FormValues) => {
     setSaving(true);
     try {
       const result = await updatePreferences({
-        ui_mode: values.tipo_interface,
+        ui_mode: values.tipo_interface, // Agora o TS reconhece estritamente como boolean!
         font_size: values.tamanhoFonte,
         contrast_level: values.contraste,
         high_element_spacing: values.espacamento,
