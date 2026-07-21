@@ -1,10 +1,18 @@
 "use client";
 
-import { Button, Form, Input, message } from "antd";
+import { App, Button, Form, Input } from "antd";
 import Link from "next/link";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useState } from "react";
-import { App } from "antd";
+
+interface FormValues {
+  email: string;
+  senha?: string;
+}
+
+interface FormErrorFields {
+  errorFields: { errors: string[] }[];
+}
 
 export default function FormLogin() {
   const [form] = Form.useForm();
@@ -12,44 +20,44 @@ export default function FormLogin() {
   const [loading, setLoading] = useState(false);
   const { notification } = App.useApp();
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: FormValues) => {
     setLoading(true);
     const { email, senha } = values;
 
     try {
-      const result = await signIn(email, senha);
+      const result = await signIn(email, senha || "");
       if (result.success) {
         notification.success({
           title: "Login realizado com sucesso!",
-          message: "Seja bem-vindo(a) de volta!",
+          description: "Seja bem-vindo(a) de volta!",
         });
       } else {
         notification.error({
           title: "Erro no login",
-          message: result.error || "E-mail ou senha incorretos.",
+          description: result.error || "E-mail ou senha incorretos.",
         });
       }
     } catch (err) {
       console.error("Erro no login:", err);
       notification.error({
         title: "Erro no login",
-        message: "Ocorreu um erro ao fazer o login. Tente novamente.",
+        description: "Ocorreu um erro ao fazer o login. Tente novamente.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const onFinishFailed = (errorInfo: any) => {
+  const onFinishFailed = (errorInfo: FormErrorFields) => {
     notification.error({
       title: "Erro no login",
-      message: errorInfo.errorFields.map((f: any) => f.errors).join(", "),
+      description: errorInfo.errorFields.map((f) => f.errors).join(", "),
     });
   };
 
   return (
-    <section className="m-auto! min-w-[500px]! block! flex! flex-col! gap-4! items-center! justify-center! bg-fundo-secundario! p-10! rounded-lg! ">
-      <h1 className="font-bold text-titulo2 text-primaria">Login</h1>
+    <section className="m-auto! min-w-[500px]! block! flex! flex-col! gap-4! items-center! justify-center! bg-fundo-secundario! p-10! rounded-lg!">
+      <h1 className="font-bold text-titulo2 text-primaria">Entrar na Conta</h1>
       <Form
         form={form}
         layout="vertical"
@@ -98,7 +106,7 @@ export default function FormLogin() {
         <p className="text-texto! w-full! text-center! text-paragrafo">
           Não possui uma conta?{" "}
           <Link href="/novo_cadastro" className="text-primaria hover:underline">
-            Faça seu cadastro aqui!
+            Faça seu cadastro aqui
           </Link>
         </p>
       </Form>

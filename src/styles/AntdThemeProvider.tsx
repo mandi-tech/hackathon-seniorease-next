@@ -25,8 +25,13 @@ export default function AntdThemeProvider({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     const checkThemeAndA11y = () => {
-      // --- Lógica de Contraste e Tema ---
       const isHighContrastAttr =
         document.documentElement.getAttribute("data-contrast") === "high";
       const prefersContrast = window.matchMedia(
@@ -44,13 +49,11 @@ export default function AntdThemeProvider({
         setThemeMode("light");
       }
 
-      // --- Lógica de Tamanho de Fonte Dinâmico ---
       const fontAttr = document.documentElement.getAttribute(
         "data-font-size",
       ) as FontSizeScale;
       if (fontAttr) setFontSizeScale(fontAttr);
 
-      // --- Lógica de Espaçamento Dinâmico ---
       const spacingAttr = document.documentElement.getAttribute(
         "data-spacing",
       ) as SpacingScale;
@@ -58,15 +61,12 @@ export default function AntdThemeProvider({
     };
 
     checkThemeAndA11y();
-    setMounted(true);
 
-    // Media Queries listeners
     const darkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const contrastMediaQuery = window.matchMedia("(prefers-contrast: more)");
     darkMediaQuery.addEventListener("change", checkThemeAndA11y);
     contrastMediaQuery.addEventListener("change", checkThemeAndA11y);
 
-    // Observer para escutar as mudanças de atributos no HTML feito por botões de acessibilidade
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (
@@ -89,71 +89,79 @@ export default function AntdThemeProvider({
       contrastMediaQuery.removeEventListener("change", checkThemeAndA11y);
       observer.disconnect();
     };
-  }, []);
-
-  // Função auxiliar para calcular os tamanhos de fonte do AntD baseado na escala
-  const getFontTokens = (scale: FontSizeScale) => {
-    const baseSizes = {
-      small: { fontSize: 12, fontSizeLG: 14, fontSizeSM: 11, fontSizeXL: 16 },
-      medium: { fontSize: 14, fontSizeLG: 16, fontSizeSM: 12, fontSizeXL: 20 },
-      large: { fontSize: 18, fontSizeLG: 20, fontSizeSM: 16, fontSizeXL: 24 },
-    };
-    return baseSizes[scale];
-  };
-
-  // Função auxiliar para injetar modificadores de espaçamento e padding
-  const getSpacingTokens = (scale: SpacingScale) => {
-    switch (scale) {
-      case "compact":
-        return { padding: 8, margin: 8, controlHeight: 28 };
-      case "spacious":
-        return { padding: 20, margin: 20, controlHeight: 45 };
-      case "normal":
-      default:
-        return { padding: 16, margin: 16, controlHeight: 32 };
-    }
-  };
+  }, [mounted]);
 
   const getThemeConfig = (
     mode: ThemeMode,
     fontScale: FontSizeScale,
-    spaceScale: SpacingScale,
+    spacing: SpacingScale,
   ): ThemeConfig => {
-    const fontTokens = getFontTokens(fontScale);
-    const spacingTokens = getSpacingTokens(spaceScale);
-    let configCalendar = {};
-    let configComponents = {};
+    const isDark = mode === "dark";
+    const algorithm = isDark
+      ? antdTheme.darkAlgorithm
+      : antdTheme.defaultAlgorithm;
 
-    let tokenCores = {
-      colorPrimary: paletaClara.primaria,
-      colorSuccess: paletaClara.sucesso,
-      colorError: paletaClara.perigo,
-      colorWarning: paletaClara.alerta,
+    const tokenCores =
+      mode === "high-contrast"
+        ? paletaAltoContraste
+        : isDark
+          ? paletaEscura
+          : paletaClara;
+
+    let fontTokens = {
+      fontSize: 16,
+      fontSizeHeading1: 32,
+      fontSizeHeading2: 24,
+      fontSizeHeading3: 20,
     };
-    let algorithm = antdTheme.defaultAlgorithm;
 
-    if (mode === "dark") {
-      algorithm = antdTheme.darkAlgorithm;
-      tokenCores = {
-        colorPrimary: paletaEscura.primaria,
-        colorSuccess: paletaEscura.sucesso,
-        colorError: paletaEscura.perigo,
-        colorWarning: paletaEscura.alerta,
+    if (fontScale === "small") {
+      fontTokens = {
+        fontSize: 14,
+        fontSizeHeading1: 28,
+        fontSizeHeading2: 20,
+        fontSizeHeading3: 18,
       };
-    } else if (mode === "high-contrast") {
-      algorithm = antdTheme.darkAlgorithm;
+    } else if (fontScale === "large") {
+      fontTokens = {
+        fontSize: 20,
+        fontSizeHeading1: 40,
+        fontSizeHeading2: 30,
+        fontSizeHeading3: 24,
+      };
+    }
 
-      tokenCores = {
-        colorPrimary: paletaAltoContraste.primaria,
-        colorSuccess: paletaAltoContraste.sucesso,
-        colorError: paletaAltoContraste.perigo,
-        colorWarning: paletaAltoContraste.alerta,
+    let spacingTokens = {
+      margin: 16,
+      padding: 16,
+      paddingLG: 24,
+      controlHeight: 40,
+    };
+
+    if (spacing === "compact") {
+      spacingTokens = {
+        margin: 8,
+        padding: 8,
+        paddingLG: 16,
+        controlHeight: 32,
       };
+    } else if (spacing === "spacious") {
+      spacingTokens = {
+        margin: 24,
+        padding: 24,
+        paddingLG: 32,
+        controlHeight: 48,
+      };
+    }
+
+    let configComponents = {};
+    let configCalendar = {};
+
+    if (mode === "high-contrast") {
       configComponents = {
-        Input: {
-          colorTextLightSolid: paletaAltoContraste.fundo,
+        Card: {
+          colorBgContainer: paletaAltoContraste.fundo,
           colorText: paletaAltoContraste.texto,
-          colorTextPlaceholder: paletaAltoContraste.texto,
           colorTextHeading: paletaAltoContraste.fundo,
         },
         Button: {

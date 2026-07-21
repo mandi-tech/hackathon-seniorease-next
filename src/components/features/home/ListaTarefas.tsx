@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClockCircleOutlined, LoadingOutlined } from "@ant-design/icons";
-import { App, Spin, message } from "antd";
+import { App, Spin } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import { createClient } from "@/src/libs/supabase/client";
@@ -70,37 +70,47 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
       if (error) throw error;
 
       setTarefas(data || []);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Erro ao carregar tarefas do dia:", error);
+      notification.error({
+        title: "Erro ao carregar tarefas",
+        description: "Não foi possível carregar as tarefas do dia.",
+      });
     } finally {
       setLoading(false);
     }
-  }, [user?.id, dataParam, supabase]);
+  }, [user, dataParam, supabase, notification]);
+
   useEffect(() => {
-    buscarTarefasDoDia();
-  }, [buscarTarefasDoDia]);
+    if (user?.id) {
+      buscarTarefasDoDia();
+    }
+  }, [user?.id, buscarTarefasDoDia]);
 
   const dataAlvoStr = dataParam || dayjs().format("DD-MM-YYYY");
-  const dataObjeto = dayjs(dataAlvoStr, "DD-MM-YYYY").isValid()
-    ? dayjs(dataAlvoStr, "DD-MM-YYYY")
-    : dayjs();
-
-  const obtenerDataFormatada = () => {
-    const dataFormatada = dataObjeto.format("dddd, DD [de] MMMM [de] YYYY");
-    return dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
-  };
+  const dataExibicao = dayjs(dataAlvoStr, "DD-MM-YYYY").format(
+    "D [de] MMMM [de] YYYY",
+  );
 
   return (
-    <section className={className}>
-      <h1 className="text-primaria text-titulo1 font-semibold mb-4">
-        Agenda do dia
-      </h1>
-      <div className="min-h-[80vh] flex flex-col gap-8 justify-between relative">
-        <div className="flex pb-2 flex-col gap-5 overflow-y-auto min-h-[fit-content]">
-          <p className="text-paragrafo font-bold">{obtenerDataFormatada()}</p>
+    <section
+      className={`bg-fundo-secundario rounded-xl shadow-md p-6 flex flex-col justify-between ${className}`}
+    >
+      <div>
+        <div className="flex justify-between items-center border-b pb-4 mb-4">
+          <div>
+            <h2 className="text-titulo2 text-secundaria font-bold capitalize">
+              Atividades do Dia
+            </h2>
+            <p className="text-paragrafo text-texto-secundaria">
+              {dataExibicao}
+            </p>
+          </div>
+        </div>
 
+        <div className="flex flex-col gap-3 my-4">
           {loading ? (
-            <div className="flex justify-center py-12">
+            <div className="flex justify-center items-center py-10">
               <Spin
                 indicator={<LoadingOutlined style={{ fontSize: 32 }} spin />}
               />
@@ -109,31 +119,23 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
             tarefas.map((tarefa) => {
               const statusInfo = obterStatusInfo(tarefa);
               const horaFormatada = dayjs(tarefa.due_date).format("HH:mm");
-              const nomeCategoria = tarefa.categories?.name || "Sem categoria";
+              const nomeCategoria =
+                (tarefa.categories?.name as string) || "Sem categoria";
 
               return (
                 <div
                   key={tarefa.id}
-                  className="bg-fundo-secundario! border-l-4 p-3 rounded-lg shadow-md flex gap-3 relative overflow-hidden items-start"
-                  style={{
-                    borderLeftColor: statusInfo.color,
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    router.push(`/tarefas/${tarefa.id}`);
-                  }}
+                  onClick={() => router.push(`/tarefas/${tarefa.id}`)}
+                  className="flex items-center justify-between p-4 bg-fundo/40 rounded-lg border border-fundo hover:border-primaria/50 transition-all cursor-pointer group"
                 >
-                  {/* Ícone ou Identificador visual da Categoria */}
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primaria/10 shrink-0 text-primaria font-bold text-center text-xs">
-                    {nomeCategoria.substring(0, 2).toUpperCase()}
-                  </div>
+                  <div className="flex flex-col gap-1 w-full">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-paragrafo font-bold text-secundaria group-hover:text-primaria transition-colors">
+                        {tarefa.title}
+                      </h3>
+                    </div>
 
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-secundaria text-titulo3 font-semibold truncate">
-                      {tarefa.title}
-                    </h2>
-
-                    <p className="text-texto-secundaria text-paragrafo truncate">
+                    <p className="text-texto-secundaria text-paragrafo line-clamp-1">
                       {tarefa.description || "Sem descrição adicional"}
                     </p>
 
@@ -168,7 +170,6 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
           )}
         </div>
 
-        {/* Repassamos a função de buscarTarefasDoDia no onSuccess para atualizar dinamicamente a lista */}
         <ModalTarefa tipo="tarefa" onSuccess={buscarTarefasDoDia} />
       </div>
     </section>

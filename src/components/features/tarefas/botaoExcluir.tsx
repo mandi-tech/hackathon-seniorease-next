@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { App, Button, Modal, message } from "antd";
+import { App, Button, Modal } from "antd";
 import { ExclamationCircleFilled, LoadingOutlined } from "@ant-design/icons";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -42,20 +42,26 @@ export default function BotaoExcluir({
       const { error } = await supabase
         .from(tabelaAlvo)
         .delete()
-        .eq("id", idTarget);
+        .eq("id", idTarget)
+        .eq("user_id", user?.id);
 
       if (error) throw error;
 
       notification.success({
         title: "Sucesso!",
-        description: `${tipo === "tarefa" ? "Tarefa" : "Passo"} excluído com sucesso!`,
+        description: `${
+          tipo === "tarefa" ? "Tarefa" : "Passo"
+        } excluído(a) com sucesso.`,
       });
+
       router.push(rotaRedirecionamento);
-    } catch (error: any) {
-      console.error(`Erro ao deletar ${tipo}:`, error);
+      router.refresh();
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error(err);
       notification.error({
-        title: "Erro ao deletar",
-        message: `Não foi possível excluir o/a ${tipo}.`,
+        title: "Erro ao excluir",
+        description: err.message || "Não foi possível excluir o item.",
       });
     } finally {
       setExecutando(false);
@@ -90,7 +96,6 @@ export default function BotaoExcluir({
         },
       });
     } else {
-      // Se extra_confirm for falso, deleta sumariamente sem perguntar nada
       await executarExclusaoFisica();
     }
   };
@@ -105,7 +110,7 @@ export default function BotaoExcluir({
       icon={executando ? <LoadingOutlined spin /> : <Trash2 size={22} />}
       onClick={handleDispararFluxo}
     >
-      {!preferences?.ui_mode && <>{executando ? "Excluindo..." : "Excluir"}</>}
+      Excluir {tipo === "tarefa" ? "Tarefa" : "Etapa"}
     </Button>
   );
 }

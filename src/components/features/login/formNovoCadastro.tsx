@@ -1,9 +1,19 @@
 "use client";
 
-import { App, Button, Divider, Form, Input, message } from "antd";
+import { App, Button, Divider, Form, Input } from "antd";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useState } from "react";
+
+interface CadastroValues {
+  nome: string;
+  email: string;
+  senha: string;
+}
+
+interface FormErrorFields {
+  errorFields: { errors: string[] }[];
+}
 
 export default function FormNovoCadastro() {
   const [form] = Form.useForm();
@@ -12,7 +22,7 @@ export default function FormNovoCadastro() {
   const [loading, setLoading] = useState(false);
   const { notification } = App.useApp();
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: CadastroValues) => {
     setLoading(true);
     const { nome, email, senha } = values;
 
@@ -21,32 +31,33 @@ export default function FormNovoCadastro() {
       if (result.success) {
         notification.success({
           title: "Cadastro realizado com sucesso!",
-          message: "Faça seu login.",
+          description: "Faça seu login.",
         });
         router.push("/login");
       } else {
         notification.error({
           title: "Erro no cadastro",
-          message: result.error || "Ocorreu um erro ao realizar o cadastro.",
+          description:
+            result.error || "Ocorreu um erro ao realizar o cadastro.",
         });
       }
     } catch (err) {
       console.error("Erro no cadastro:", err);
       notification.error({
         title: "Erro no cadastro",
-        message: "Ocorreu um erro ao criar a conta. Tente novamente.",
+        description: "Ocorreu um erro ao criar a conta. Tente novamente.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const onFinishFailed = (errorInfo: any) => {
+  const onFinishFailed = (errorInfo: FormErrorFields) => {
     console.log("Failed:", errorInfo);
   };
 
   return (
-    <section className="m-auto! min-w-[500px]! block! flex! flex-col! gap-4! items-center! justify-center! bg-fundo-secundario! p-10! rounded-lg! ">
+    <section className="m-auto! min-w-[500px]! block! flex! flex-col! gap-4! items-center! justify-center! bg-fundo-secundario! p-10! rounded-lg!">
       <h1 className="font-bold text-titulo2 text-primaria">Novo Cadastro</h1>
       <Form
         form={form}
@@ -56,16 +67,13 @@ export default function FormNovoCadastro() {
         onFinishFailed={onFinishFailed}
       >
         <Form.Item
-          label="Nome"
+          label="Nome Completo"
           name="nome"
           rules={[{ required: true, message: "Por favor, digite seu nome!" }]}
         >
-          <Input
-            type="text"
-            size="large"
-            placeholder="Digite seu nome completo"
-          />
+          <Input size="large" placeholder="Ex: Maria Silva" />
         </Form.Item>
+
         <Form.Item
           label="Email"
           name="email"
