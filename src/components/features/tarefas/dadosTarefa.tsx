@@ -236,7 +236,7 @@ export default function DadosTarefa() {
                 {visualizandoEtapa ? "Etapa / Passo" : "Tarefa Principal"}
               </span>
               {tarefaPai.categories?.name && !visualizandoEtapa && (
-                <span className="text-paragrafo! font-medium px-2.5 py-1 rounded-md bg-gray-100 text-gray-600">
+                <span className="text-paragrafo! font-medium px-2.5 py-1 rounded-md bg-fundo-secundario text-texto-secundaria border border-fundo">
                   {tarefaPai.categories.name}
                 </span>
               )}
