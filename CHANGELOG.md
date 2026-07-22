@@ -47,6 +47,13 @@ Para cada versão lançada, categorize as alterações nos seguintes tópicos:
 - Script de automação `deploy.sh` para publicação no Docker Hub.
 - Definição do padronizador de versionamento no `CHANGELOG.md`.
 
+## [v1.0.1] - 2026-07-22
+
+### Corrigido
+
+- Loop infinito de re-renderizações e requisições HTTP no AuthProvider (`AuthContext.tsx`).
+- Adicionado deploy automático via SSH na AWS EC2 no GitHub Actions.
+
 ---
 
 ## [v1.0.0] - 2026-07-20
