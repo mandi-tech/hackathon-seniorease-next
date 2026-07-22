@@ -26,7 +26,6 @@ export default function AntdThemeProvider({
 
   useEffect(() => {
     const checkThemeAndA11y = () => {
-      // --- Lógica de Contraste e Tema ---
       const isHighContrastAttr =
         document.documentElement.getAttribute("data-contrast") === "high";
       const prefersContrast = window.matchMedia(
@@ -44,14 +43,12 @@ export default function AntdThemeProvider({
         setThemeMode("light");
       }
 
-      // --- Lógica de Tamanho de Fonte Dinâmico ---
       const fontAttr = document.documentElement.getAttribute(
         "data-font-size",
       ) as FontSizeScale;
       if (fontAttr) setFontSizeScale(fontAttr);
       else setFontSizeScale("medium");
 
-      // --- Lógica de Espaçamento Dinâmico ---
       const spacingAttr = document.documentElement.getAttribute(
         "data-spacing",
       ) as SpacingScale;
@@ -59,19 +56,16 @@ export default function AntdThemeProvider({
       else setSpacingScale("normal");
     };
 
-    // Agenda a montagem e verificação inicial de forma assíncrona para evitar render em cascata síncrono
     queueMicrotask(() => {
       setMounted(true);
       checkThemeAndA11y();
     });
 
-    // Media Queries listeners
     const darkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const contrastMediaQuery = window.matchMedia("(prefers-contrast: more)");
     darkMediaQuery.addEventListener("change", checkThemeAndA11y);
     contrastMediaQuery.addEventListener("change", checkThemeAndA11y);
 
-    // Observer para escutar as mudanças de atributos no HTML feito por botões de acessibilidade
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (
@@ -96,11 +90,15 @@ export default function AntdThemeProvider({
     };
   }, []);
 
-  // Função auxiliar para calcular os tamanhos de fonte do AntD baseado na escala
   const getFontTokens = (scale: FontSizeScale) => {
     const baseSizes: Record<
       string,
-      { fontSize: number; fontSizeLG: number; fontSizeSM: number; fontSizeXL: number }
+      {
+        fontSize: number;
+        fontSizeLG: number;
+        fontSizeSM: number;
+        fontSizeXL: number;
+      }
     > = {
       small: { fontSize: 12, fontSizeLG: 14, fontSizeSM: 11, fontSizeXL: 16 },
       medium: { fontSize: 14, fontSizeLG: 16, fontSizeSM: 12, fontSizeXL: 20 },
@@ -115,7 +113,6 @@ export default function AntdThemeProvider({
     return baseSizes[scale] || baseSizes.medium;
   };
 
-  // Função auxiliar para injetar modificadores de espaçamento e padding
   const getSpacingTokens = (scale: SpacingScale) => {
     switch (scale) {
       case "compact":
