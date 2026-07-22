@@ -61,56 +61,63 @@ export default function FormLogin() {
   };
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      className="space-y-8! w-full!"
-      onFinish={onFinish}
-      onFinishFailed={onFinishFailed}
-    >
-      <Form.Item
-        label="Email"
-        name="email"
-        rules={[
-          { required: true, message: "Por favor, digite seu e-mail!" },
-          { type: "email", message: "Insira um e-mail válido!" },
-        ]}
+    <section className="w-full! max-w-[400px]! p-8! bg-fundo-secundario! rounded-lg! shadow-md!">
+      <h1 className="text-titulo1! font-bold! text-center! mb-8! text-primaria">
+        SeniorEase
+      </h1>
+      <Form
+        form={form}
+        layout="vertical"
+        className="space-y-8! "
+        onFinish={onFinish}
+        onFinishFailed={onFinishFailed}
       >
-        <Input type="email" size="large" placeholder="nome@exemplo.com" />
-      </Form.Item>
-
-      <div className="space-y-2!">
         <Form.Item
-          label="Senha"
-          name="senha"
-          rules={[{ required: true, message: "Por favor, digite sua senha!" }]}
+          label="Email"
+          name="email"
+          rules={[
+            { required: true, message: "Por favor, digite seu e-mail!" },
+            { type: "email", message: "Insira um e-mail válido!" },
+          ]}
         >
-          <Input.Password size="large" placeholder="Digite sua senha" />
+          <Input type="email" size="large" placeholder="nome@exemplo.com" />
         </Form.Item>
-        <Link
-          href="/"
-          className="text-texto-secundaria text-paragrafo hover:text-primaria"
+
+        <div className="space-y-2!">
+          <Form.Item
+            label="Senha"
+            name="senha"
+            rules={[
+              { required: true, message: "Por favor, digite sua senha!" },
+            ]}
+          >
+            <Input.Password size="large" placeholder="Digite sua senha" />
+          </Form.Item>
+          <Link
+            href="/"
+            className="text-texto-secundaria text-paragrafo hover:text-primaria"
+          >
+            Esqueci minha senha
+          </Link>
+        </div>
+
+        <Button
+          type="primary"
+          htmlType="submit"
+          size="large"
+          className="w-full! mx-auto!"
+          loading={loading}
         >
-          Esqueci minha senha
-        </Link>
-      </div>
+          Entrar
+        </Button>
 
-      <Button
-        type="primary"
-        htmlType="submit"
-        size="large"
-        className="w-full! mx-auto!"
-        loading={loading}
-      >
-        Entrar
-      </Button>
-
-      <p className="text-texto! w-full! text-center! text-paragrafo">
-        Não possui uma conta?{" "}
-        <Link href="/novo_cadastro" className="text-primaria hover:underline">
-          Faça seu cadastro aqui
-        </Link>
-      </p>
-    </Form>
+        <p className="text-texto! w-full! text-center! text-paragrafo">
+          Não possui uma conta?{" "}
+          <Link href="/novo_cadastro" className="text-primaria hover:underline">
+            Faça seu cadastro aqui
+          </Link>
+        </p>
+      </Form>
+    </section>
   );
 }

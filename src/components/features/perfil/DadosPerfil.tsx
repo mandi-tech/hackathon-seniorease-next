@@ -37,25 +37,25 @@ export default function DadosPerfil() {
       </div>
 
       {/* Cartão do Usuário */}
-      <Card
-        extra={<ModalEditarPerfil />}
-        className="shadow-md bg-fundo-secundario border border-fundo"
-      >
-        <div className="flex flex-col sm:flex-row items-center gap-6">
-          <Avatar
-            size={80}
-            className="bg-primaria text-fundo font-bold text-titulo1"
-          >
-            {getInitials(name)}
-          </Avatar>
-          <div className="space-y-1 text-center sm:text-left">
-            <h2 className="text-titulo2 font-bold text-secundaria m-0">
-              {name}
-            </h2>
-            <p className="text-texto-secundaria text-paragrafo flex items-center justify-center sm:justify-start gap-1 m-0">
-              <Mail size={16} /> {email}
-            </p>
+      <Card className="shadow-md bg-fundo-secundario border border-fundo p-6!">
+        <div className="flex justify-between items-center gap-4! ">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <Avatar
+              size={80}
+              className="bg-primaria text-fundo font-bold text-titulo1"
+            >
+              {getInitials(name)}
+            </Avatar>
+            <div className="space-y-1 text-center sm:text-left">
+              <h2 className="text-titulo2 font-bold text-secundaria m-0">
+                {name}
+              </h2>
+              <p className="text-texto-secundaria text-paragrafo flex items-center justify-center sm:justify-start gap-1 m-0">
+                <Mail size={16} /> {email}
+              </p>
+            </div>
           </div>
+          <ModalEditarPerfil />
         </div>
       </Card>
 

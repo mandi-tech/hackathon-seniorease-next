@@ -16,7 +16,6 @@ import { Book, Briefcase } from "lucide-react";
 dayjs.extend(customParseFormat);
 dayjs.locale("pt-br");
 
-// Instanciado fora do componente para manter referência estável
 const supabase = createClient();
 
 export interface iListaTarefasProps {
@@ -48,7 +47,6 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
   const [loading, setLoading] = useState(false);
   const [reloadTrigger, setReloadTrigger] = useState(0);
 
-  // Derivação do valor de data diretamente no fluxo de renderização
   const dataObjeto = dataParam ? dayjs(dataParam, "DD-MM-YYYY") : dayjs();
   const dataAlvoStr = dataObjeto.isValid()
     ? dataObjeto.format("YYYY-MM-DD")

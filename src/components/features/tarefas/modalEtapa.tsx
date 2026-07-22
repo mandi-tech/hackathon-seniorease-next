@@ -105,16 +105,13 @@ export default function ModalEtapa({
         if (stepError) throw stepError;
         targetStepId = stepData.id;
       }
-      // Processamento e upload de arquivos anexos
       if (values.task_files && values.task_files.length > 0 && targetStepId) {
         for (const fileItem of values.task_files) {
           const originFile = fileItem.originFileObj;
           if (!originFile) continue;
 
-          // Caminho no bucket incluindo user.id na raiz para respeitar a política RLS do Storage
           const filePath = `${user.id}/${idTarefaPai}/${targetStepId}/${originFile.name}`;
 
-          // Upload no bucket correto 'task-attachments'
           const { error: uploadError } = await supabase.storage
             .from("task-attachments")
             .upload(filePath, originFile, { upsert: true });
@@ -124,7 +121,6 @@ export default function ModalEtapa({
             throw uploadError;
           }
 
-          // Vinculação na tabela 'task_files' com task_id como null
           const { error: fileTableError } = await supabase
             .from("task_files")
             .insert([

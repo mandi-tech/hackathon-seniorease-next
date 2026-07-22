@@ -6,12 +6,10 @@ import * as AuthContext from "@/src/contexts/AuthContext";
 import * as Navigation from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
-// Mock do next/navigation
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
-// Mock do hook useAuth
 vi.mock("@/src/contexts/AuthContext", () => ({
   useAuth: vi.fn(),
   AuthProvider: ({ children }: { children: React.ReactNode }) => (

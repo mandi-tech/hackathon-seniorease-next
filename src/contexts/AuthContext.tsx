@@ -417,7 +417,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data?: { name?: string };
       } = {};
 
-      if (data.email && data.email !== user.email) {
+      const emailMudou =
+        data.email && data.email.trim() !== "" && data.email !== user.email;
+
+      if (emailMudou) {
         authUpdates.email = data.email;
       }
       if (data.password && data.password.trim() !== "") {
@@ -428,22 +431,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (Object.keys(authUpdates).length > 0) {
-        const { error: authError } = await supabase.auth.updateUser(
-          authUpdates,
-        );
+        const { error: authError } =
+          await supabase.auth.updateUser(authUpdates);
         if (authError) {
           return { success: false, error: authError.message };
         }
       }
 
-      if (data.name || data.email) {
-        const profileUpdates: { name?: string; email?: string } = {};
-        if (data.name) profileUpdates.name = data.name;
-        if (data.email) profileUpdates.email = data.email;
-
+      if (data.name) {
         const { data: updatedProfile, error: profileError } = await supabase
           .from("profiles")
-          .update(profileUpdates)
+          .update({ name: data.name })
           .eq("id", user.id)
           .select()
           .maybeSingle();

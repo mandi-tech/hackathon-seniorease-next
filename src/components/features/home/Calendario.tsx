@@ -14,7 +14,6 @@ import { iTask } from "@/src/libs/types/iTarefa";
 dayjs.extend(customParseFormat);
 dayjs.locale("pt-br");
 
-// Instancia fora do componente para evitar recriação da referência de memória a cada render
 const supabase = createClient();
 
 export interface iCalendarioProps {
@@ -39,12 +38,10 @@ export default function Calendario({ className }: iCalendarioProps) {
   const [tasks, setTasks] = useState<iTask[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Deriva o valor de data diretamente a partir da URL
   const dataParam = searchParams.get("data");
   const parsedParam = dataParam ? dayjs(dataParam, "DD-MM-YYYY") : null;
   const value = parsedParam && parsedParam.isValid() ? parsedParam : dayjs();
 
-  // Mês e Ano formatados para chave do efeito (evita requisições repetidas se apenas o dia mudar)
   const anoMesChave = value.format("YYYY-MM");
 
   useEffect(() => {
@@ -87,7 +84,7 @@ export default function Calendario({ className }: iCalendarioProps) {
     return () => {
       active = false;
     };
-  }, [user?.id, anoMesChave]); // Dispara apenas quando o ID do usuário ou o MÊS/ANO mudarem
+  }, [user?.id, anoMesChave]);
 
   const handleSelectDate = (newValue: dayjs.Dayjs) => {
     const dataFormatada = newValue.format("DD-MM-YYYY");

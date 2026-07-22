@@ -48,33 +48,33 @@ export default function FormNovoCadastro() {
     }
   };
 
-  const onFinishFailed = (errorInfo: unknown) => {
-    console.log("Failed:", errorInfo);
-  };
-
   return (
-    <section className="m-auto w-full max-w-md p-6">
+    <section className="w-full! p-8! bg-fundo-secundario! rounded-lg! shadow-md!">
+      <h1 className="text-titulo1! font-bold! text-center! mb-8! text-primaria">
+        Novo Cadastro - SeniorEase
+      </h1>
       <Form
         form={form}
         layout="vertical"
-        className="space-y-6! w-full!"
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
+        className="space-y-4"
       >
         <Form.Item
           label="Nome Completo"
           name="nome"
-          rules={[{ required: true, message: "Por favor, digite seu nome!" }]}
+          rules={[
+            { required: true, message: "Por favor, digite seu nome completo!" },
+          ]}
         >
           <Input size="large" placeholder="Seu nome completo" />
         </Form.Item>
 
         <Form.Item
-          label="Email"
+          label="E-mail"
           name="email"
           rules={[
             { required: true, message: "Por favor, digite seu e-mail!" },
-            { type: "email", message: "Insira um e-mail válido!" },
+            { type: "email", message: "Digite um e-mail válido!" },
           ]}
         >
           <Input type="email" size="large" placeholder="nome@exemplo.com" />
@@ -87,12 +87,52 @@ export default function FormNovoCadastro() {
           name="senha"
           rules={[
             { required: true, message: "Por favor, digite sua senha!" },
-            { min: 6, message: "A senha deve ter no mínimo 6 caracteres!" },
+            {
+              validator(_, value) {
+                if (!value) {
+                  return Promise.resolve();
+                }
+
+                if (value.length < 8) {
+                  return Promise.reject(
+                    new Error("A senha deve ter no mínimo 8 caracteres."),
+                  );
+                }
+                if (!/[A-Z]/.test(value)) {
+                  return Promise.reject(
+                    new Error(
+                      "A senha deve conter pelo menos uma letra maiúscula.",
+                    ),
+                  );
+                }
+                if (!/[a-z]/.test(value)) {
+                  return Promise.reject(
+                    new Error(
+                      "A senha deve conter pelo menos uma letra minúscula.",
+                    ),
+                  );
+                }
+                if (!/\d/.test(value)) {
+                  return Promise.reject(
+                    new Error("A senha deve conter pelo menos um número."),
+                  );
+                }
+                if (!/[@$!%*?&]/.test(value)) {
+                  return Promise.reject(
+                    new Error(
+                      "A senha deve conter pelo menos um caractere especial (@$!%*?&).",
+                    ),
+                  );
+                }
+
+                return Promise.resolve();
+              },
+            },
           ]}
         >
           <Input.Password
             size="large"
-            placeholder="Crie uma senha forte (mín. 6 caracteres)"
+            placeholder="Crie uma senha forte (mín. 8 caracteres)"
           />
         </Form.Item>
 

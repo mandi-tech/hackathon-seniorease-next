@@ -120,7 +120,6 @@ export default function FormConfig() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
 
-  // Carrega as configurações do banco no formulário
   useEffect(() => {
     if (preferences) {
       form.setFieldsValue({
@@ -138,7 +137,7 @@ export default function FormConfig() {
     setSaving(true);
     try {
       const result = await updatePreferences({
-        ui_mode: values.tipo_interface, // Agora o TS reconhece estritamente como boolean!
+        ui_mode: values.tipo_interface,
         font_size: values.tamanhoFonte,
         contrast_level: values.contraste,
         high_element_spacing: values.espacamento,

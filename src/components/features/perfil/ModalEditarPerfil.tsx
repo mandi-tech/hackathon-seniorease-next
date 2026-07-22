@@ -171,26 +171,59 @@ export default function ModalEditarPerfil({
           {/* Nova Senha */}
           <Form.Item
             label={
-              <span className="text-paragrafo font-semibold text-secundaria flex items-center gap-1.5">
-                <Lock size={16} /> Nova Senha (Opcional)
+              <span className="flex items-center gap-2 font-medium text-texto">
+                <Lock size={16} className="text-primaria" />
+                Nova Senha (Opcional)
               </span>
             }
             name="password"
             rules={[
               {
-                min: 6,
-                message: "A nova senha deve ter no mínimo 6 caracteres.",
+                validator(_, value) {
+                  if (!value || value.trim() === "") {
+                    return Promise.resolve();
+                  }
+
+                  if (value.length < 8) {
+                    return Promise.reject(
+                      new Error("A senha deve ter no mínimo 8 caracteres."),
+                    );
+                  }
+                  if (!/[A-Z]/.test(value)) {
+                    return Promise.reject(
+                      new Error(
+                        "A senha deve conter pelo menos uma letra maiúscula.",
+                      ),
+                    );
+                  }
+                  if (!/[a-z]/.test(value)) {
+                    return Promise.reject(
+                      new Error(
+                        "A senha deve conter pelo menos uma letra minúscula.",
+                      ),
+                    );
+                  }
+                  if (!/\d/.test(value)) {
+                    return Promise.reject(
+                      new Error("A senha deve conter pelo menos um número."),
+                    );
+                  }
+                  if (!/[@$!%*?&]/.test(value)) {
+                    return Promise.reject(
+                      new Error(
+                        "A senha deve conter pelo menos um caractere especial (@$!%*?&).",
+                      ),
+                    );
+                  }
+
+                  return Promise.resolve();
+                },
               },
             ]}
-            extra={
-              <span className="text-paragrafo! text-texto-secundaria">
-                Deixe em branco se não desejar alterar sua senha.
-              </span>
-            }
           >
             <Input.Password
               size="large"
-              placeholder="Digite sua nova senha"
+              placeholder="Deixe em branco para manter a atual"
               aria-label="Nova senha"
               className="text-paragrafo"
             />

@@ -11,6 +11,7 @@ import {
   Upload,
   message,
   App,
+  TimePicker,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import { UploadOutlined } from "@ant-design/icons";
@@ -33,7 +34,7 @@ interface FormTaskValues {
   title: string;
   description: string;
   due_date: Dayjs;
-  hora: string;
+  hora: Dayjs;
   category_id: string;
   task_files?: UploadFile[];
 }
@@ -114,9 +115,7 @@ export default function ModalTarefa({
           title: dadosEdicao.title,
           description: dadosEdicao.description,
           due_date: dataMetadados.isValid() ? dataMetadados : undefined,
-          hora: dataMetadados.isValid()
-            ? dataMetadados.format("HH:mm")
-            : undefined,
+          hora: dataMetadados.isValid() ? dataMetadados : undefined,
           category_id: dadosEdicao.category_id,
           task_files: arquivosFormatados,
         });
@@ -134,7 +133,7 @@ export default function ModalTarefa({
       }
 
       const dataBase = values.due_date.format("YYYY-MM-DD");
-      const horaBase = values.hora;
+      const horaBase = values.hora.format("HH:mm");
       const stringDataHoraCompleta = `${dataBase}T${horaBase}:00`;
       const due_date_formatado = dayjs(stringDataHoraCompleta).toISOString();
 
@@ -247,6 +246,14 @@ export default function ModalTarefa({
         }}
         cancelText="Cancelar"
         okText={isModoEdicao ? "Salvar Alterações" : "Salvar"}
+        width={{
+          xs: "90%",
+          sm: "80%",
+          md: "70%",
+          lg: "60%",
+          xl: "50%",
+          xxl: "40%",
+        }}
       >
         <Form
           form={form}
@@ -302,22 +309,11 @@ export default function ModalTarefa({
                 { required: true, message: "Por favor, selecione o horário" },
               ]}
             >
-              <Select
-                placeholder="Selecione"
-                options={[
-                  { value: "09:00", label: "09:00" },
-                  { value: "10:00", label: "10:00" },
-                  { value: "11:00", label: "11:00" },
-                  { value: "12:00", label: "12:00" },
-                  { value: "13:00", label: "13:00" },
-                  { value: "14:00", label: "14:00" },
-                  { value: "15:00", label: "15:00" },
-                  { value: "16:00", label: "16:00" },
-                  { value: "17:00", label: "17:00" },
-                  { value: "18:00", label: "18:00" },
-                  { value: "19:00", label: "19:00" },
-                  { value: "20:00", label: "20:00" },
-                ]}
+              <TimePicker
+                format="HH:mm"
+                minuteStep={15}
+                className="w-full!"
+                placeholder="Selecione o horário"
                 size="large"
               />
             </Form.Item>
