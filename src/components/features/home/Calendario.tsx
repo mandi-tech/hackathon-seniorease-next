@@ -106,7 +106,7 @@ export default function Calendario({ className }: iCalendarioProps) {
 
   return (
     <section
-      className={`w-full max-w-5xl mx-auto p-4 bg-fundo text-texto ${className || ""}`}
+      className={`w-full! mx-auto bg-fundo text-texto ${className || ""}`}
     >
       {/* Cabeçalho do Calendário */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-fundo-secundario">

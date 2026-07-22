@@ -37,7 +37,7 @@ export default function RootLayout({
             <AntdThemeProvider>
               <Navbar />
               <section className="flex justify-center w-full mt-8">
-                <div className="w-[90%] xl:w-[80%] mb-8">{children}</div>
+                <div className="w-[95%]! lg:w-[80%]! mb-8">{children}</div>
               </section>
             </AntdThemeProvider>
           </App>
