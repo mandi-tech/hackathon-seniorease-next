@@ -11,6 +11,8 @@ import {
   formatPreferenceStatus,
 } from "@/src/libs/utils/formatters";
 
+import ModalEditarPerfil from "./ModalEditarPerfil";
+
 export default function DadosPerfil() {
   const router = useRouter();
   const { profile, user, preferences, loading } = useAuth();
@@ -35,7 +37,10 @@ export default function DadosPerfil() {
       </div>
 
       {/* Cartão do Usuário */}
-      <Card className="shadow-md bg-fundo-secundario border border-fundo">
+      <Card
+        extra={<ModalEditarPerfil />}
+        className="shadow-md bg-fundo-secundario border border-fundo"
+      >
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <Avatar
             size={80}

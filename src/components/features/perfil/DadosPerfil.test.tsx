@@ -44,6 +44,7 @@ describe("DadosPerfil Component", () => {
       signUp: vi.fn(),
       signOut: vi.fn(),
       updatePreferences: vi.fn(),
+      updateProfile: vi.fn(),
     });
 
     const { container } = render(<DadosPerfil />);
@@ -75,6 +76,7 @@ describe("DadosPerfil Component", () => {
       signUp: vi.fn(),
       signOut: vi.fn(),
       updatePreferences: vi.fn(),
+      updateProfile: vi.fn(),
     });
 
     render(<DadosPerfil />);
@@ -107,11 +109,12 @@ describe("DadosPerfil Component", () => {
       signUp: vi.fn(),
       signOut: vi.fn(),
       updatePreferences: vi.fn(),
+      updateProfile: vi.fn(),
     });
 
     render(<DadosPerfil />);
 
-    const editButton = screen.getByRole("button", { name: /editar/i });
+    const editButton = screen.getByRole("button", { name: /^editar$/i });
     expect(editButton).toBeInTheDocument();
 
     fireEvent.click(editButton);
@@ -128,6 +131,7 @@ describe("DadosPerfil Component", () => {
       signUp: vi.fn(),
       signOut: vi.fn(),
       updatePreferences: vi.fn(),
+      updateProfile: vi.fn(),
     });
 
     render(<DadosPerfil />);
