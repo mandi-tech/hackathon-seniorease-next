@@ -5,7 +5,7 @@ import ListaTarefas from "@/src/components/features/home/ListaTarefas";
 export default function Home() {
   return (
     <div>
-      <section className="grid grid-cols-8 gap-8">
+      <section className="grid grid-cols-8 gap-8 h-full!">
         <Suspense
           fallback={
             <div className="col-span-8 xl:col-span-6 min-h-[400px] flex flex-col items-center justify-center bg-fundo-secundario rounded-lg shadow-sm p-5">
@@ -18,7 +18,7 @@ export default function Home() {
             </div>
           }
         >
-          <Calendario className="col-span-8 xl:col-span-6" />
+          <Calendario className="col-span-8 xl:col-span-6 w-full!" />
         </Suspense>
 
         <Suspense
@@ -33,10 +33,9 @@ export default function Home() {
             </div>
           }
         >
-          <ListaTarefas className="col-span-8 xl:col-span-2" />
+          <ListaTarefas className="col-span-8 lg:col-span-2" />
         </Suspense>
       </section>
     </div>
   );
 }
-

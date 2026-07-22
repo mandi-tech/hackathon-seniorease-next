@@ -22,13 +22,13 @@ describe('FormConfig Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (Navigation.useRouter as any).mockReturnValue({
+    (Navigation.useRouter as ReturnType<typeof vi.fn>).mockReturnValue({
       push: mockPush,
     });
   });
 
-  const setupTest = (preferences: any) => {
-    (AuthContext.useAuth as any).mockReturnValue({
+  const setupTest = (preferences: Record<string, unknown>) => {
+    (AuthContext.useAuth as ReturnType<typeof vi.fn>).mockReturnValue({
       preferences,
       updatePreferences: mockUpdatePreferences,
     });

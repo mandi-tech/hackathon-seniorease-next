@@ -1,18 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Modal, Form, Input, Upload, message, App } from "antd";
+import { Button, Modal, Form, Input, Upload, App } from "antd";
+import type { UploadFile } from "antd/es/upload/interface";
 import { UploadOutlined } from "@ant-design/icons";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { iFileAttachment, iTaskStep } from "@/src/libs/types/iTarefa";
 import { Pencil, Plus } from "lucide-react";
 
 export interface iModalEtapaProps {
   idTarefaPai: string;
   onSuccess?: () => void;
-  dadosEdicao?: any;
+  dadosEdicao?: iTaskStep;
   controlOpen?: boolean;
   setControlOpen?: (open: boolean) => void;
+}
+
+interface FormStepValues {
+  instruction: string;
+  task_files?: UploadFile[];
 }
 
 export default function ModalEtapa({
@@ -24,10 +31,10 @@ export default function ModalEtapa({
 }: iModalEtapaProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<FormStepValues>();
   const { notification } = App.useApp();
 
-  const { user } = useAuth();
+  const { user, preferences } = useAuth();
   const supabase = createClient();
 
   const isModoEdicao = !!dadosEdicao;
@@ -43,58 +50,44 @@ export default function ModalEtapa({
 
   useEffect(() => {
     if (open) {
-      if (isModoEdicao && dadosEdicao) {
-        const arquivosFormatados =
-          dadosEdicao.task_files?.map((file: any) => ({
-            uid: file.id,
-            name: file.file_name,
-            status: "done",
-            url: supabase.storage
-              .from("task-attachments")
-              .getPublicUrl(file.file_path).data.publicUrl,
-            originFileObj: null,
-          })) || [];
-
+      if (dadosEdicao) {
         form.setFieldsValue({
           instruction: dadosEdicao.instruction,
-          task_files: arquivosFormatados,
         });
       } else {
         form.resetFields();
       }
     }
-  }, [open, dadosEdicao, isModoEdicao, form]);
+  }, [open, dadosEdicao, form]);
 
-  const handleSalvarEtapa = async (values: any) => {
+  const handleSalvarEtapa = async (values: FormStepValues) => {
+    if (!user) {
+      notification.error({
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para realizar esta ação.",
+      });
+      return;
+    }
+
     setLoading(true);
-    try {
-      if (!user) throw new Error("Usuário não autenticado.");
-      if (!idTarefaPai) throw new Error("ID da tarefa pai é obrigatório.");
 
+    try {
       let targetStepId = dadosEdicao?.id;
 
-      if (isModoEdicao) {
+      if (isModoEdicao && targetStepId) {
         const { error: updateError } = await supabase
           .from("task_steps")
-          .update({
-            instruction: values.instruction,
-            updated_at: new Date().toISOString(),
-          })
+          .update({ instruction: values.instruction })
           .eq("id", targetStepId);
 
         if (updateError) throw updateError;
       } else {
-        const { data: stepsExistentes, error: errorOrdem } = await supabase
+        const { count } = await supabase
           .from("task_steps")
-          .select("step_order")
+          .select("*", { count: "exact", head: true })
           .eq("task_id", idTarefaPai);
 
-        if (errorOrdem) throw errorOrdem;
-
-        const proximaOrdem =
-          stepsExistentes && stepsExistentes.length > 0
-            ? Math.max(...stepsExistentes.map((s) => s.step_order)) + 1
-            : 1;
+        const proximaOrdem = (count || 0) + 1;
 
         const { data: stepData, error: stepError } = await supabase
           .from("task_steps")
@@ -102,38 +95,41 @@ export default function ModalEtapa({
             {
               task_id: idTarefaPai,
               instruction: values.instruction,
-              step_order: proximaOrdem,
               is_completed: false,
+              step_order: proximaOrdem,
             },
           ])
           .select()
           .single();
 
         if (stepError) throw stepError;
-        targetStepId = stepData?.id;
+        targetStepId = stepData.id;
       }
-
-      const fileList = values.task_files || [];
-      if (fileList.length > 0 && targetStepId) {
-        for (const file of fileList) {
-          const originFile = file.originFileObj;
+      // Processamento e upload de arquivos anexos
+      if (values.task_files && values.task_files.length > 0 && targetStepId) {
+        for (const fileItem of values.task_files) {
+          const originFile = fileItem.originFileObj;
           if (!originFile) continue;
 
-          const fileExt = originFile.name.split(".").pop();
-          const uniqueFileName = `${crypto.randomUUID()}.${fileExt}`;
-          const filePath = `${user.id}/${idTarefaPai}/steps/${targetStepId}/${uniqueFileName}`;
+          // Caminho no bucket incluindo user.id na raiz para respeitar a política RLS do Storage
+          const filePath = `${user.id}/${idTarefaPai}/${targetStepId}/${originFile.name}`;
 
+          // Upload no bucket correto 'task-attachments'
           const { error: uploadError } = await supabase.storage
             .from("task-attachments")
-            .upload(filePath, originFile);
+            .upload(filePath, originFile, { upsert: true });
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            console.error("Erro no upload do storage:", uploadError);
+            throw uploadError;
+          }
 
+          // Vinculação na tabela 'task_files' com task_id como null
           const { error: fileTableError } = await supabase
             .from("task_files")
             .insert([
               {
-                task_id: idTarefaPai,
+                task_id: null,
                 step_id: targetStepId,
                 file_name: originFile.name,
                 file_path: filePath,
@@ -141,26 +137,32 @@ export default function ModalEtapa({
               },
             ]);
 
-          if (fileTableError) throw fileTableError;
+          if (fileTableError) {
+            console.error("Erro na tabela task_files:", fileTableError);
+            throw fileTableError;
+          }
         }
       }
 
       notification.success({
-        title: "Sucesso!",
+        title: isModoEdicao ? "Etapa atualizada" : "Etapa criada",
         description: isModoEdicao
-          ? "Passo atualizado com sucesso!"
-          : "Novo passo adicionado!",
+          ? "A etapa foi atualizada com sucesso!"
+          : "Nova etapa adicionada à tarefa!",
       });
 
       form.resetFields();
       handleSetOpen(false);
 
-      if (onSuccess) onSuccess();
-    } catch (error: any) {
-      console.error("Erro ao salvar etapa:", error);
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro inesperado ao salvar etapa";
       notification.error({
         title: "Erro ao salvar",
-        description: `Erro ao salvar: ${error.message || "Tente novamente."}`,
+        description: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -172,12 +174,16 @@ export default function ModalEtapa({
       {controlOpen === undefined && (
         <Button
           type="primary"
-          onClick={() => handleSetOpen(true)}
-          className="text-titulo3! text-fundo!"
           size="large"
           icon={isModoEdicao ? <Pencil /> : <Plus />}
+          onClick={() => handleSetOpen(true)}
+          className={`text-titulo3! text-fundo!`}
         >
-          {isModoEdicao ? "Editar Etapa" : "Adicionar Etapa"}
+          {preferences?.ui_mode
+            ? ""
+            : isModoEdicao
+              ? "Editar Etapa"
+              : "Adicionar Passo"}
         </Button>
       )}
 
@@ -221,7 +227,9 @@ export default function ModalEtapa({
             label="Documentos e Evidências da Etapa"
             name="task_files"
             valuePropName="fileList"
-            getValueFromEvent={(e: any) => (Array.isArray(e) ? e : e?.fileList)}
+            getValueFromEvent={(
+              e: UploadFile[] | { fileList: UploadFile[] },
+            ) => (Array.isArray(e) ? e : e?.fileList)}
           >
             <Upload multiple beforeUpload={() => false}>
               <Button icon={<UploadOutlined />}>

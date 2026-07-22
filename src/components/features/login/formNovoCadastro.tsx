@@ -1,9 +1,16 @@
 "use client";
 
-import { App, Button, Divider, Form, Input, message } from "antd";
+import { App, Button, Divider, Form, Input } from "antd";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useState } from "react";
+
+interface CadastroFormValues {
+  nome: string;
+  email: string;
+  senha: string;
+  confirmacaoSenha: string;
+}
 
 export default function FormNovoCadastro() {
   const [form] = Form.useForm();
@@ -12,7 +19,7 @@ export default function FormNovoCadastro() {
   const [loading, setLoading] = useState(false);
   const { notification } = App.useApp();
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: CadastroFormValues) => {
     setLoading(true);
     const { nome, email, senha } = values;
 
@@ -41,31 +48,27 @@ export default function FormNovoCadastro() {
     }
   };
 
-  const onFinishFailed = (errorInfo: any) => {
+  const onFinishFailed = (errorInfo: unknown) => {
     console.log("Failed:", errorInfo);
   };
 
   return (
-    <section className="m-auto! min-w-[500px]! block! flex! flex-col! gap-4! items-center! justify-center! bg-fundo-secundario! p-10! rounded-lg! ">
-      <h1 className="font-bold text-titulo2 text-primaria">Novo Cadastro</h1>
+    <section className="m-auto w-full max-w-md p-6">
       <Form
         form={form}
         layout="vertical"
-        className="space-y-8! w-full!"
+        className="space-y-6! w-full!"
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
       >
         <Form.Item
-          label="Nome"
+          label="Nome Completo"
           name="nome"
           rules={[{ required: true, message: "Por favor, digite seu nome!" }]}
         >
-          <Input
-            type="text"
-            size="large"
-            placeholder="Digite seu nome completo"
-          />
+          <Input size="large" placeholder="Seu nome completo" />
         </Form.Item>
+
         <Form.Item
           label="Email"
           name="email"
@@ -92,6 +95,7 @@ export default function FormNovoCadastro() {
             placeholder="Crie uma senha forte (mín. 6 caracteres)"
           />
         </Form.Item>
+
         <Form.Item
           label="Confirmação de Senha"
           name="confirmacaoSenha"

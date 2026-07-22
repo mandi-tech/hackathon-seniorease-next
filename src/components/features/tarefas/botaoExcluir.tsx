@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { App, Button, Modal, message } from "antd";
+import { App, Button, Modal } from "antd";
 import { ExclamationCircleFilled, LoadingOutlined } from "@ant-design/icons";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,7 @@ export default function BotaoExcluir({
   const { user, preferences } = useAuth();
   const supabase = createClient();
   const [executando, setExecutando] = useState(false);
+  const [modalAberto, setModalAberto] = useState(false);
   const { notification } = App.useApp();
 
   const tabelaAlvo = tipo === "tarefa" ? "tasks" : "task_steps";
@@ -36,7 +37,7 @@ export default function BotaoExcluir({
     try {
       if (arquivos && arquivos.length > 0) {
         const caminhos = arquivos.map((f) => f.file_path);
-        await supabase.storage.from("task-attachments").remove(caminhos);
+        await supabase.storage.from("task-files").remove(caminhos);
       }
 
       const { error } = await supabase
@@ -47,65 +48,74 @@ export default function BotaoExcluir({
       if (error) throw error;
 
       notification.success({
-        title: "Sucesso!",
-        description: `${tipo === "tarefa" ? "Tarefa" : "Passo"} excluído com sucesso!`,
+        title: `${tipo === "tarefa" ? "Tarefa" : "Passo"} excluído(a)`,
+        description: "O item foi removido com sucesso.",
       });
+
+      setModalAberto(false);
       router.push(rotaRedirecionamento);
-    } catch (error: any) {
-      console.error(`Erro ao deletar ${tipo}:`, error);
+      router.refresh();
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro desconhecido ao excluir";
       notification.error({
-        title: "Erro ao deletar",
-        message: `Não foi possível excluir o/a ${tipo}.`,
+        title: "Erro ao excluir",
+        description: errorMessage,
       });
     } finally {
       setExecutando(false);
     }
   };
 
-  const handleDispararFluxo = async () => {
+  const handleDispararFluxo = () => {
     if (!user) return;
 
     if (preferences?.extra_confirm) {
-      Modal.confirm({
-        title: (
-          <div className="text-titulo3! text-fundo">
-            Tem certeza que deseja excluir este{" "}
-            {tipo === "tarefa" ? "tarefa" : "passo"}?
-          </div>
-        ),
-        icon: <ExclamationCircleFilled className="text-titulo2!" />,
-        content: (
-          <div className="text-fundo-secundario! text-paragrafo! font-normal!">
-            {tipo === "tarefa"
-              ? "Esta ação removerá permanentemente a tarefa, todos os seus subpassos e arquivos anexados."
-              : "Esta ação removerá permanentemente este passo e os arquivos associados a ele."}
-          </div>
-        ),
-        okText: "Sim, excluir",
-        okType: "danger",
-        cancelText: "Cancelar",
-        centered: true,
-        onOk: async () => {
-          await executarExclusaoFisica();
-        },
-      });
+      setModalAberto(true);
     } else {
-      // Se extra_confirm for falso, deleta sumariamente sem perguntar nada
-      await executarExclusaoFisica();
+      executarExclusaoFisica();
     }
   };
 
   return (
-    <Button
-      className="text-titulo3!"
-      size="large"
-      type="primary"
-      danger
-      disabled={executando}
-      icon={executando ? <LoadingOutlined spin /> : <Trash2 size={22} />}
-      onClick={handleDispararFluxo}
-    >
-      {!preferences?.ui_mode && <>{executando ? "Excluindo..." : "Excluir"}</>}
-    </Button>
+    <>
+      <Button
+        className="text-titulo3!"
+        size="large"
+        type="primary"
+        danger
+        disabled={executando}
+        icon={executando ? <LoadingOutlined spin /> : <Trash2 size={22} />}
+        onClick={handleDispararFluxo}
+      >
+        {!preferences?.ui_mode ? "Excluir" : ""}
+      </Button>
+
+      <Modal
+        title={
+          <div className="flex items-center gap-2 text-titulo3">
+            <ExclamationCircleFilled className="text-red-500" />
+            <span>
+              Tem certeza que deseja excluir esta{" "}
+              {tipo === "tarefa" ? "tarefa" : "subtarefa"}?
+            </span>
+          </div>
+        }
+        open={modalAberto}
+        onOk={executarExclusaoFisica}
+        onCancel={() => setModalAberto(false)}
+        okText="Sim, excluir"
+        okType="danger"
+        cancelText="Cancelar"
+        confirmLoading={executando}
+        centered
+      >
+        <p className="text-paragrafo text-texto-secundaria my-4">
+          {tipo === "tarefa"
+            ? "Esta ação removerá permanentemente a tarefa, todos os seus subpassos e arquivos anexados."
+            : "Esta ação removerá permanentemente este passo e os arquivos associados a ele."}
+        </p>
+      </Modal>
+    </>
   );
 }

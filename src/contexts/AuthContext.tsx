@@ -1,8 +1,15 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { createClient } from "@/src/libs/supabase/client";
 import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
 export interface Profile {
   id: string;
@@ -19,12 +26,12 @@ export interface UserPreferences {
   ui_mode: boolean;
   visual_feedback: boolean;
   extra_confirm: boolean;
-  has_configured?: boolean | null; // Opcional: requer migration ALTER TABLE
+  has_configured?: boolean | null;
   updated_at?: string;
 }
 
 interface AuthContextType {
-  user: any | null;
+  user: User | null;
   profile: Profile | null;
   preferences: UserPreferences | null;
   loading: boolean;
@@ -45,21 +52,20 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const supabase = createClient();
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
 
-  // Função para aplicar os estilos de acessibilidade no documentElement
   const applyPreferences = (prefs: UserPreferences) => {
     if (typeof window === "undefined") return;
 
     const root = document.documentElement;
 
-    // 1. Tamanho da Fonte
     if (prefs.font_size === "grande") {
       root.setAttribute("data-font-size", "large");
     } else if (prefs.font_size === "muito-grande") {
@@ -68,28 +74,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       root.removeAttribute("data-font-size");
     }
 
-    // 2. Alto Contraste
     if (prefs.contrast_level) {
       root.setAttribute("data-contrast", "high");
     } else {
       root.removeAttribute("data-contrast");
     }
 
-    // 3. Espaçamento Amplo
     if (prefs.high_element_spacing) {
       root.setAttribute("data-spacing", "wide");
     } else {
       root.removeAttribute("data-spacing");
     }
 
-    // 4. Modo de UI Simples
     if (prefs.ui_mode) {
       root.setAttribute("data-ui-mode", "simple");
     } else {
       root.removeAttribute("data-ui-mode");
     }
 
-    // 5. Feedback Visual
     if (prefs.visual_feedback) {
       root.setAttribute("data-visual-feedback", "high");
     } else {
@@ -107,112 +109,109 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     root.removeAttribute("data-visual-feedback");
   };
 
-  // Carrega os dados do usuário, perfil e preferências (com auto-criação se estiverem ausentes)
-  const loadUserData = async (
-    currUser: any,
-  ): Promise<UserPreferences | null> => {
-    try {
-      if (!currUser) {
-        setUser(null);
-        setProfile(null);
-        setPreferences(null);
-        clearPreferences();
+  const loadUserData = useCallback(
+    async (currUser: User | null): Promise<UserPreferences | null> => {
+      try {
+        if (!currUser) {
+          setUser(null);
+          setProfile(null);
+          setPreferences(null);
+          clearPreferences();
+          return null;
+        }
+
+        setUser(currUser);
+
+        const { data: pData, error: profileErr } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", currUser.id)
+          .maybeSingle();
+
+        let activeProfile = pData;
+
+        if (profileErr) {
+          console.error("Erro ao buscar perfil:", profileErr);
+        }
+
+        if (!pData && !profileErr) {
+          const { data: newProfile, error: createProfileErr } = await supabase
+            .from("profiles")
+            .insert({
+              id: currUser.id,
+              name:
+                currUser.user_metadata?.name ||
+                currUser.user_metadata?.nome ||
+                "Usuário SeniorEase",
+              email: currUser.email || "",
+            })
+            .select()
+            .maybeSingle();
+
+          if (createProfileErr) {
+            console.error("Erro ao criar perfil em falta:", createProfileErr);
+          } else if (newProfile) {
+            activeProfile = newProfile;
+          }
+        }
+
+        if (activeProfile) {
+          setProfile(activeProfile);
+        }
+
+        const { data: prData, error: prefErr } = await supabase
+          .from("user_preferences")
+          .select("*")
+          .eq("user_id", currUser.id)
+          .maybeSingle();
+
+        let activePreferences = prData;
+
+        if (prefErr) {
+          console.error("Erro ao buscar preferências:", prefErr);
+        }
+
+        if (!prData && !prefErr) {
+          const { data: newPrefs, error: createPrefsErr } = await supabase
+            .from("user_preferences")
+            .insert({
+              user_id: currUser.id,
+              font_size: "padrao",
+              contrast_level: false,
+              high_element_spacing: false,
+              ui_mode: false,
+              visual_feedback: true,
+              extra_confirm: false,
+            })
+            .select()
+            .maybeSingle();
+
+          if (createPrefsErr) {
+            console.error(
+              "Erro ao criar preferências em falta:",
+              createPrefsErr,
+            );
+          } else if (newPrefs) {
+            activePreferences = newPrefs;
+          }
+        }
+
+        if (activePreferences) {
+          setPreferences(activePreferences);
+          applyPreferences(activePreferences);
+          return activePreferences as UserPreferences;
+        }
+
+        return null;
+      } catch (err) {
+        console.error("Erro ao carregar dados do usuário:", err);
         return null;
       }
-
-      setUser(currUser);
-
-      // 1. Busca perfil (com maybeSingle para evitar PGRST116)
-      const { data: pData, error: profileErr } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", currUser.id)
-        .maybeSingle();
-
-      let activeProfile = pData;
-
-      if (profileErr) {
-        console.error("Erro ao buscar perfil:", profileErr);
-      }
-
-      // Se o perfil não existir (ex: usuário antigo na tabela auth.users), cria automaticamente
-      if (!pData && !profileErr) {
-        const { data: newProfile, error: createProfileErr } = await supabase
-          .from("profiles")
-          .insert({
-            id: currUser.id,
-            name:
-              currUser.user_metadata?.name ||
-              currUser.user_metadata?.nome ||
-              "Usuário SeniorEase",
-            email: currUser.email || "",
-          })
-          .select()
-          .maybeSingle();
-
-        if (createProfileErr) {
-          console.error("Erro ao criar perfil em falta:", createProfileErr);
-        } else if (newProfile) {
-          activeProfile = newProfile;
-        }
-      }
-
-      if (activeProfile) {
-        setProfile(activeProfile);
-      }
-
-      // 2. Busca preferências (com maybeSingle para evitar PGRST116)
-      const { data: prData, error: prefErr } = await supabase
-        .from("user_preferences")
-        .select("*")
-        .eq("user_id", currUser.id)
-        .maybeSingle();
-
-      let activePreferences = prData;
-
-      if (prefErr) {
-        console.error("Erro ao buscar preferências:", prefErr);
-      }
-
-      // Se as preferências não existirem, cria automaticamente
-      if (!prData && !prefErr) {
-        const { data: newPrefs, error: createPrefsErr } = await supabase
-          .from("user_preferences")
-          .insert({
-            user_id: currUser.id,
-            font_size: "padrao",
-            contrast_level: false,
-            high_element_spacing: false,
-            ui_mode: false,
-            visual_feedback: true,
-            extra_confirm: false,
-            // has_configured omitido: o DEFAULT false do banco cuida disso
-          })
-          .select()
-          .maybeSingle();
-
-        if (createPrefsErr) {
-          console.error("Erro ao criar preferências em falta:", createPrefsErr);
-        } else if (newPrefs) {
-          activePreferences = newPrefs;
-        }
-      }
-
-      if (activePreferences) {
-        setPreferences(activePreferences);
-        applyPreferences(activePreferences);
-        return activePreferences as UserPreferences;
-      }
-
-      return null;
-    } catch (err) {
-      console.error("Erro ao carregar dados do usuário:", err);
-      return null;
-    }
-  };
+    },
+    [],
+  );
 
   useEffect(() => {
-    // Verifica sessão atual no mount
     const checkSession = async () => {
       setLoading(true);
       const {
@@ -231,7 +230,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     checkSession();
 
-    // Ouve alterações no estado de autenticação
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -251,10 +249,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [loadUserData, router]);
 
-  // Efeito global de redirecionamento para primeira configuração
-  // Só redireciona se has_configured for explicitamente false (não null/undefined = campo não existe ainda)
   useEffect(() => {
     if (!loading && user && preferences) {
       const isConfigPage = window.location.pathname === "/acessibilidade";
@@ -294,11 +290,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       return { success: false, error: "Usuário não encontrado." };
-    } catch (err: any) {
-      return {
-        success: false,
-        error: err.message || "Erro desconhecido ao entrar.",
-      };
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro desconhecido ao entrar.";
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -320,16 +315,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data?.user) {
         await loadUserData(data.user);
-        // O efeito global se encarregará de empurrar para /acessibilidade já que has_configured será falso
         return { success: true };
       }
 
       return { success: true };
-    } catch (err: any) {
-      return {
-        success: false,
-        error: err.message || "Erro desconhecido ao cadastrar.",
-      };
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro desconhecido ao cadastrar.";
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -346,8 +339,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return { success: false, error: "Nenhum usuário logado." };
 
     try {
-      // Strip has_configured if the column doesn't exist in DB yet
-      const { has_configured, ...safePrefs } = newPrefs as any;
+      const { has_configured, ...safePrefs } = newPrefs;
       const columnExists = preferences?.has_configured !== undefined;
       const payload = columnExists
         ? { ...safePrefs, has_configured }
@@ -355,7 +347,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const timestamp = { updated_at: new Date().toISOString() };
 
-      // 1. Tenta UPDATE primeiro (usa a política de UPDATE, que funciona)
       const { data: updatedData, error: updateError } = await supabase
         .from("user_preferences")
         .update({ ...payload, ...timestamp })
@@ -367,14 +358,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: updateError.message };
       }
 
-      // UPDATE retornou dados — linha existia e foi atualizada
       if (updatedData) {
         setPreferences(updatedData);
         applyPreferences(updatedData);
         return { success: true };
       }
 
-      // 2. Linha não existia: tenta INSERT (fallback para usuários sem linha de prefs)
       const { data: insertedData, error: insertError } = await supabase
         .from("user_preferences")
         .insert({
@@ -385,7 +374,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ui_mode: false,
           visual_feedback: true,
           extra_confirm: false,
-          ...payload, // sobrescreve com os valores do formulário
+          ...payload,
           ...timestamp,
         })
         .select()
@@ -402,11 +391,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       return { success: false, error: "Falha ao salvar preferências." };
-    } catch (err: any) {
-      return {
-        success: false,
-        error: err.message || "Erro desconhecido ao salvar.",
-      };
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro desconhecido ao salvar.";
+      return { success: false, error: errorMessage };
     }
   };
 
