@@ -27,7 +27,7 @@ export default function DadosPerfil() {
   const email = profile?.email || user?.email || "Sem e-mail cadastrado";
 
   return (
-    <section className="w-full space-y-8 max-w-4xl mx-auto">
+    <section className="w-full space-y-8!  mx-auto">
       <div className="flex items-center justify-between border-b pb-4">
         <h1 className="text-primaria text-titulo1 font-semibold m-0 flex items-center gap-2">
           <User size={32} /> Meu Perfil
@@ -80,7 +80,7 @@ export default function DadosPerfil() {
                 <h4 className="font-semibold text-secundaria text-paragrafo m-0">
                   Tamanho da Fonte
                 </h4>
-                <p className="text-xs text-texto-secundaria m-0">
+                <p className="text-paragrafo! text-texto-secundaria m-0">
                   Escala de texto no sistema
                 </p>
               </div>
@@ -98,7 +98,7 @@ export default function DadosPerfil() {
                 <h4 className="font-semibold text-secundaria text-paragrafo m-0">
                   Alto Contraste
                 </h4>
-                <p className="text-xs text-texto-secundaria m-0">
+                <p className="text-paragrafo! text-texto-secundaria m-0">
                   Esquema de cores ajustado
                 </p>
               </div>
@@ -123,7 +123,7 @@ export default function DadosPerfil() {
                 <h4 className="font-semibold text-secundaria text-paragrafo m-0">
                   Espaçamento Expandido
                 </h4>
-                <p className="text-xs text-texto-secundaria m-0">
+                <p className="text-paragrafo! text-texto-secundaria m-0">
                   Mais espaço entre elementos
                 </p>
               </div>
@@ -148,7 +148,7 @@ export default function DadosPerfil() {
                 <h4 className="font-semibold text-secundaria text-paragrafo m-0">
                   Feedback Visual Extra
                 </h4>
-                <p className="text-xs text-texto-secundaria m-0">
+                <p className="text-paragrafo! text-texto-secundaria m-0">
                   Destaques visuais interativos
                 </p>
               </div>
@@ -173,7 +173,7 @@ export default function DadosPerfil() {
                 <h4 className="font-semibold text-secundaria text-paragrafo m-0">
                   Segurança de Exclusão
                 </h4>
-                <p className="text-xs text-texto-secundaria m-0">
+                <p className="text-paragrafo! text-texto-secundaria m-0">
                   Exigir confirmação antes de apagar itens
                 </p>
               </div>

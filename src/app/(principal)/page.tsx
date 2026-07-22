@@ -18,7 +18,7 @@ export default function Home() {
             </div>
           }
         >
-          <Calendario className="col-span-8 xl:col-span-6" />
+          <Calendario className="col-span-8 xl:col-span-6 w-full!" />
         </Suspense>
 
         <Suspense
@@ -33,7 +33,7 @@ export default function Home() {
             </div>
           }
         >
-          <ListaTarefas className="col-span-8 xl:col-span-2" />
+          <ListaTarefas className="col-span-8 lg:col-span-2" />
         </Suspense>
       </section>
     </div>

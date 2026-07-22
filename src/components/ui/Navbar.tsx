@@ -17,7 +17,7 @@ export default function Navbar() {
 
   return (
     <nav className="flex justify-center py-6 border-b border-primaria">
-      <div className="flex justify-between items-center w-[90%] xl:w-[80%]">
+      <div className="flex justify-between items-center w-[95%]! lg:w-[80%]!">
         <Link href="/">
           <h1 className="text-2xl font-bold text-primaria cursor-pointer">
             SeniorEase
@@ -25,11 +25,10 @@ export default function Navbar() {
         </Link>
 
         <div className="flex gap-8 items-center">
-          <Link href="/acessibilidade" className=" text-paragrafo">
-            <SettingOutlined className="text-titulo3!" />{" "}
-            {preferences?.ui_mode ? "" : "Configurações"}
-          </Link>
-          <Link href="/perfil" className="text-primaria! text-paragrafo!">
+          <Link
+            href="/perfil"
+            className="flex items-center gap-2! text-primaria! text-paragrafo!"
+          >
             <User className="text-titulo3!" />{" "}
             {preferences?.ui_mode ? "" : "Perfil"}
           </Link>

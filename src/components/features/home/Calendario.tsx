@@ -106,7 +106,7 @@ export default function Calendario({ className }: iCalendarioProps) {
 
   return (
     <section
-      className={`w-full max-w-5xl mx-auto p-4 bg-fundo text-texto ${className || ""}`}
+      className={`w-full! mx-auto bg-fundo text-texto ${className || ""}`}
     >
       {/* Cabeçalho do Calendário */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-fundo-secundario">
@@ -186,7 +186,7 @@ export default function Calendario({ className }: iCalendarioProps) {
                           <span
                             className={`w-2 h-2 rounded-full shrink-0 ${corDot}`}
                           />
-                          <p className="text-texto truncate m-0 font-medium">
+                          <p className="text-texto text-paragrafo truncate m-0 font-medium">
                             {tarefa.title}
                           </p>
                         </span>

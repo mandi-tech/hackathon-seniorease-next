@@ -26,6 +26,7 @@ export interface iModalTarefaProps {
   dadosEdicao?: iMainTask;
   controlOpen?: boolean;
   setControlOpen?: (open: boolean) => void;
+  className?: string;
 }
 
 interface FormTaskValues {
@@ -48,6 +49,7 @@ export default function ModalTarefa({
   dadosEdicao,
   controlOpen,
   setControlOpen,
+  className,
 }: iModalTarefaProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -222,12 +224,15 @@ export default function ModalTarefa({
         <Button
           type="primary"
           onClick={() => handleSetOpen(true)}
-          className="text-titulo3! text-fundo!"
+          className={`text-titulo3! text-fundo! ${className}`}
           size="large"
           icon={isModoEdicao ? <Pencil /> : <Plus />}
         >
-          {!isModoEdicao && (!preferences?.ui_mode ? "Adicionar Tarefa" : "")}
-          {isModoEdicao && (!preferences?.ui_mode ? "Editar Tarefa" : "")}
+          {preferences?.ui_mode
+            ? ""
+            : isModoEdicao
+              ? "Editar Tarefa"
+              : "Adicionar Tarefa"}
         </Button>
       )}
 
