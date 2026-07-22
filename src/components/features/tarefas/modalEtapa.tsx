@@ -82,6 +82,13 @@ export default function ModalEtapa({
 
         if (updateError) throw updateError;
       } else {
+        const { count } = await supabase
+          .from("task_steps")
+          .select("*", { count: "exact", head: true })
+          .eq("task_id", idTarefaPai);
+
+        const proximaOrdem = (count || 0) + 1;
+
         const { data: stepData, error: stepError } = await supabase
           .from("task_steps")
           .insert([
@@ -89,6 +96,7 @@ export default function ModalEtapa({
               task_id: idTarefaPai,
               instruction: values.instruction,
               is_completed: false,
+              step_order: proximaOrdem,
             },
           ])
           .select()
@@ -97,7 +105,6 @@ export default function ModalEtapa({
         if (stepError) throw stepError;
         targetStepId = stepData.id;
       }
-
       // Processamento e upload de arquivos anexos
       if (values.task_files && values.task_files.length > 0 && targetStepId) {
         for (const fileItem of values.task_files) {

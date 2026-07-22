@@ -156,7 +156,7 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
                           </div>
                         </div>
 
-                        <div className="flex justify-between items-center gap-4 mt-2">
+                        <div className="flex flex-wrap justify-between items-center gap-4 mt-2">
                           <div className="flex items-center gap-1 text-texto-secundaria text-paragrafo">
                             <ClockCircleOutlined />
                             <span>{horaFormatada}</span>
@@ -196,7 +196,7 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
         <ModalTarefa
           tipo="tarefa"
           onSuccess={handleSucessoModal}
-          className="w-full"
+          className="w-full!"
         />
       </div>
     </section>
