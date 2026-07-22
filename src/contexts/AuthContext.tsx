@@ -52,13 +52,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const supabase = createClient();
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
 
   const applyPreferences = (prefs: UserPreferences) => {
     if (typeof window === "undefined") return;
@@ -207,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null;
       }
     },
-    [supabase],
+    [],
   );
 
   useEffect(() => {
@@ -248,7 +249,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [loadUserData, router, supabase]);
+  }, [loadUserData, router]);
 
   useEffect(() => {
     if (!loading && user && preferences) {
