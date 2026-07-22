@@ -47,12 +47,22 @@ Para cada versão lançada, categorize as alterações nos seguintes tópicos:
 - Script de automação `deploy.sh` para publicação no Docker Hub.
 - Definição do padronizador de versionamento no `CHANGELOG.md`.
 
-## [v1.0.1] - 2026-07-22
+## [v1.1.0] - 2026-07-22
+
+### Adicionado
+
+- Componente modal `ModalEditarPerfil` para permitir a alteração de Nome, E-mail e Senha pelo usuário na página de Perfil.
+- Função `updateProfile` no `AuthContext` integrada à API do Supabase Auth e à tabela de banco `profiles`.
+- Testes unitários cobrindo o fluxo de exibição e submissão do `ModalEditarPerfil`.
+
+### Modificado
+
+- Padronização de tipografia (`var(--font-atkinson)`), cores semânticas do tema e suporte às preferências do usuário (`data-spacing="wide"`, `data-visual-feedback="high"`, `data-font-size="extra-large"`).
 
 ### Corrigido
 
-- Loop infinito de re-renderizações e requisições HTTP no AuthProvider (`AuthContext.tsx`).
-- Adicionado deploy automático via SSH na AWS EC2 no GitHub Actions.
+- Loop infinito de re-renderizações e requisições HTTP no `AuthProvider` (`AuthContext.tsx`).
+- Configurada etapa de deploy automático via SSH na AWS EC2 no workflow do GitHub Actions (`deploy.yml`).
 
 ---
 
