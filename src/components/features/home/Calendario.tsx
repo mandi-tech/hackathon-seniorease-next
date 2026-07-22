@@ -186,7 +186,7 @@ export default function Calendario({ className }: iCalendarioProps) {
                           <span
                             className={`w-2 h-2 rounded-full shrink-0 ${corDot}`}
                           />
-                          <p className="text-texto truncate m-0 font-medium">
+                          <p className="text-texto text-paragrafo truncate m-0 font-medium">
                             {tarefa.title}
                           </p>
                         </span>

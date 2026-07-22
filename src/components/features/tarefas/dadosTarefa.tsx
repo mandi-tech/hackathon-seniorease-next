@@ -186,7 +186,7 @@ export default function DadosTarefa() {
     <div className="bg-fundo-secundario p-6 rounded-2xl border border-fundo space-y-6!">
       {/* Breadcrumb / Navegação Dinâmica */}
       <Breadcrumb
-        className="bg-fundo p-4! rounded-lg"
+        className="bg-fundo p-4! rounded-lg text-paragrafo!"
         items={[
           {
             title: (
@@ -351,6 +351,7 @@ export default function DadosTarefa() {
                     subtarefaAtual.is_completed,
                   )
                 }
+                className="text-paragrafo!"
               >
                 {subtarefaAtual.is_completed
                   ? "Marcar como Pendente"
@@ -373,6 +374,7 @@ export default function DadosTarefa() {
               onClick={() =>
                 handleAlternarCheckboxTarefaPai(tarefaPai.is_completed)
               }
+              className="text-paragrafo!"
             >
               {tarefaPai.is_completed
                 ? "Marcar como Pendente"
@@ -409,7 +411,7 @@ export default function DadosTarefa() {
                       }
                     }}
                   >
-                    <span className="font-medium text-texto max-w-xs truncate">
+                    <span className="font-medium text-texto text-paragrafo max-w-xs truncate">
                       {arquivo.file_name}
                     </span>
                     <EyeOutlined className="text-primaria ml-1" />
@@ -446,7 +448,7 @@ export default function DadosTarefa() {
                     className="p-3.5 rounded-xl border border-fundo bg-fundo flex items-center justify-between gap-3 hover:border-primaria/30 transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold w-6 h-6 rounded-full bg-primaria/10 text-primaria flex items-center justify-center shrink-0">
+                      <span className="text-paragrafo font-bold w-8 h-8 rounded-full bg-primaria/10 text-primaria flex items-center justify-center shrink-0">
                         {index + 1}
                       </span>
                       <div>
@@ -460,7 +462,7 @@ export default function DadosTarefa() {
                           {step.instruction}
                         </p>
                         {step.task_files && step.task_files.length > 0 && (
-                          <span className="text-xs text-texto-secundaria flex items-center gap-1 mt-1">
+                          <span className="text-paragrafo text-texto-secundaria flex items-center gap-1 mt-1">
                             <PaperClipOutlined /> {step.task_files.length}{" "}
                             {step.task_files.length === 1 ? "anexo" : "anexos"}
                           </span>
@@ -501,7 +503,8 @@ export default function DadosTarefa() {
                         </Button>
                       )}
                       <Button
-                        size="small"
+                        size="medium"
+                        className="text-paragrafo!"
                         type="link"
                         onClick={() =>
                           router.push(`/tarefas/${idTarefa}/${step.id}`)
