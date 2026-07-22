@@ -25,7 +25,10 @@ export default function Navbar() {
         </Link>
 
         <div className="flex gap-8 items-center">
-          <Link href="/perfil" className="text-primaria! text-paragrafo!">
+          <Link
+            href="/perfil"
+            className="flex items-center gap-2! text-primaria! text-paragrafo!"
+          >
             <User className="text-titulo3!" />{" "}
             {preferences?.ui_mode ? "" : "Perfil"}
           </Link>

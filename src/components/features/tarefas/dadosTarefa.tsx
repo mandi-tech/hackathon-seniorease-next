@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Tag, Breadcrumb, Spin, App } from "antd";
+import { Button, Tag, Breadcrumb, Spin, App, Checkbox } from "antd";
 import { useRouter, useParams } from "next/navigation";
 import {
   ClockCircleOutlined,
@@ -31,8 +31,11 @@ const supabase = createClient();
 export default function DadosTarefa() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
+  const { user, preferences } = useAuth();
   const { notification } = App.useApp();
+
+  // Obtém a preferência ui_mode diretamente do contexto de autenticação
+  const uiMode = !!preferences?.ui_mode;
 
   const tarefaParams = params?.tarefa;
 
@@ -324,21 +327,46 @@ export default function DadosTarefa() {
             </Tag>
           </div>
 
-          {/* Botão de alternar status do item atual */}
+          {/* Alternância dinâmica entre Checkbox e Botão conforme ui_mode */}
           {visualizandoEtapa && subtarefaAtual ? (
-            <Button
-              type={subtarefaAtual.is_completed ? "default" : "primary"}
-              onClick={() =>
-                handleAlternarCheckboxStep(
-                  subtarefaAtual.id,
-                  subtarefaAtual.is_completed,
-                )
+            uiMode ? (
+              <Checkbox
+                checked={subtarefaAtual.is_completed}
+                onChange={() =>
+                  handleAlternarCheckboxStep(
+                    subtarefaAtual.id,
+                    subtarefaAtual.is_completed,
+                  )
+                }
+                className="text-paragrafo font-medium"
+              >
+                Concluído
+              </Checkbox>
+            ) : (
+              <Button
+                type={subtarefaAtual.is_completed ? "default" : "primary"}
+                onClick={() =>
+                  handleAlternarCheckboxStep(
+                    subtarefaAtual.id,
+                    subtarefaAtual.is_completed,
+                  )
+                }
+              >
+                {subtarefaAtual.is_completed
+                  ? "Marcar como Pendente"
+                  : "Concluir Etapa"}
+              </Button>
+            )
+          ) : uiMode ? (
+            <Checkbox
+              checked={tarefaPai.is_completed}
+              onChange={() =>
+                handleAlternarCheckboxTarefaPai(tarefaPai.is_completed)
               }
+              className="text-paragrafo font-medium"
             >
-              {subtarefaAtual.is_completed
-                ? "Marcar como Pendente"
-                : "Concluir Etapa"}
-            </Button>
+              Concluído
+            </Checkbox>
           ) : (
             <Button
               type={tarefaPai.is_completed ? "default" : "primary"}
@@ -441,19 +469,37 @@ export default function DadosTarefa() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="small"
-                        onClick={() =>
-                          handleAlternarCheckboxStep(step.id, step.is_completed)
-                        }
-                        className={`text-paragrafo! ${
-                          step.is_completed ? "text-alerta!" : "text-sucesso!"
-                        }`}
-                      >
-                        {step.is_completed
-                          ? "Marcar como pendente"
-                          : "Concluir Etapa"}
-                      </Button>
+                      {uiMode ? (
+                        <Checkbox
+                          checked={step.is_completed}
+                          onChange={() =>
+                            handleAlternarCheckboxStep(
+                              step.id,
+                              step.is_completed,
+                            )
+                          }
+                          className="text-paragrafo font-medium"
+                        >
+                          Concluído
+                        </Checkbox>
+                      ) : (
+                        <Button
+                          size="medium"
+                          onClick={() =>
+                            handleAlternarCheckboxStep(
+                              step.id,
+                              step.is_completed,
+                            )
+                          }
+                          className={`text-paragrafo! ${
+                            step.is_completed ? "text-alerta!" : "text-sucesso!"
+                          }`}
+                        >
+                          {step.is_completed
+                            ? "Marcar como pendente"
+                            : "Concluir Etapa"}
+                        </Button>
+                      )}
                       <Button
                         size="small"
                         type="link"
