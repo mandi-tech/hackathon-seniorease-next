@@ -6,7 +6,7 @@ import type { UploadFile } from "antd/es/upload/interface";
 import { UploadOutlined } from "@ant-design/icons";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { iFileAttachment, iTaskStep } from "@/src/libs/types/iTarefa";
+import { iTaskStep } from "@/src/libs/types/iTarefa";
 import { Pencil, Plus } from "lucide-react";
 
 export interface iModalEtapaProps {

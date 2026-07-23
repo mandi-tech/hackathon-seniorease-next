@@ -84,7 +84,7 @@ export default function Calendario({ className }: iCalendarioProps) {
     return () => {
       active = false;
     };
-  }, [user?.id, anoMesChave]);
+  }, [user?.id, anoMesChave, notification, value]);
 
   const handleSelectDate = (newValue: dayjs.Dayjs) => {
     const dataFormatada = newValue.format("DD-MM-YYYY");

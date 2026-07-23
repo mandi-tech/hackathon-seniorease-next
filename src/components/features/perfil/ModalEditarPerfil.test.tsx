@@ -1,4 +1,3 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ModalEditarPerfil from "./ModalEditarPerfil";
@@ -22,7 +21,10 @@ describe("ModalEditarPerfil Component", () => {
         email: "maria@example.com",
         created_at: "2026-01-01",
       },
-      user: { id: "123", email: "maria@example.com" } as any,
+      user: {
+        id: "123",
+        email: "maria@example.com",
+      } as unknown as import("@supabase/supabase-js").User,
       preferences: null,
       signIn: vi.fn(),
       signUp: vi.fn(),
