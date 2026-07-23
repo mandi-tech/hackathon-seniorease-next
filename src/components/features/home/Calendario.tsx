@@ -42,8 +42,6 @@ export default function Calendario({ className }: iCalendarioProps) {
   const parsedParam = dataParam ? dayjs(dataParam, "DD-MM-YYYY") : null;
   const value = parsedParam && parsedParam.isValid() ? parsedParam : dayjs();
 
-  const anoMesChave = value.format("YYYY-MM");
-
   useEffect(() => {
     let active = true;
 
@@ -84,7 +82,8 @@ export default function Calendario({ className }: iCalendarioProps) {
     return () => {
       active = false;
     };
-  }, [user?.id, anoMesChave, notification, value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const handleSelectDate = (newValue: dayjs.Dayjs) => {
     const dataFormatada = newValue.format("DD-MM-YYYY");

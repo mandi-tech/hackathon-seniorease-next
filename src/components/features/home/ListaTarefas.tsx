@@ -27,10 +27,10 @@ const obterStatusInfo = (tarefa: iTask) => {
     return { label: "Concluída", color: "#10b981" };
   }
 
-  const hoje = dayjs();
+  const agora = dayjs();
   const dataVencimento = dayjs(tarefa.due_date);
 
-  if (dataVencimento.isBefore(hoje, "day")) {
+  if (dataVencimento.isBefore(agora)) {
     return { label: "Em Atraso", color: "#ef4444" };
   }
 
