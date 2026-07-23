@@ -34,12 +34,10 @@ export default function DadosTarefa() {
   const { user, preferences } = useAuth();
   const { notification } = App.useApp();
 
-  // Obtém a preferência ui_mode diretamente do contexto de autenticação
   const uiMode = !!preferences?.ui_mode;
 
   const tarefaParams = params?.tarefa;
 
-  // Extrai o ID da tarefa principal e, caso exista, o ID da subtarefa/etapa
   const idTarefa = Array.isArray(tarefaParams) ? tarefaParams[0] : undefined;
   const idSubtarefa =
     Array.isArray(tarefaParams) && tarefaParams.length > 1
@@ -59,7 +57,6 @@ export default function DadosTarefa() {
 
       setLoading(true);
       try {
-        // 1. Busca a tarefa principal + categorias + seus arquivos anexos
         const { data: dataPai, error: errPai } = await supabase
           .from("tasks")
           .select("*, categories(name), task_files(*)")
@@ -69,7 +66,6 @@ export default function DadosTarefa() {
 
         if (errPai) throw errPai;
 
-        // 2. Busca todas as etapas/subtarefas vinculadas + seus arquivos anexos
         const { data: dataSteps, error: errSteps } = await supabase
           .from("task_steps")
           .select("*, task_files(*)")
@@ -148,7 +144,6 @@ export default function DadosTarefa() {
     }
   };
 
-  // Função auxiliar para obter a URL pública do arquivo no Storage
   const obterUrlArquivo = (filePath: string) => {
     const { data } = supabase.storage
       .from("task-attachments")
@@ -173,11 +168,9 @@ export default function DadosTarefa() {
     );
   }
 
-  // Identifica se estamos visualizando uma etapa específica
   const subtarefaAtual = subtarefas.find((s) => s.id === idSubtarefa);
   const visualizandoEtapa = Boolean(idSubtarefa && subtarefaAtual);
 
-  // Seleciona quais arquivos exibir de acordo com a visão atual (etapa ou tarefa principal)
   const arquivosExibicao: iFileAttachment[] = visualizandoEtapa
     ? subtarefaAtual?.task_files || []
     : tarefaPai?.task_files || [];
@@ -236,7 +229,7 @@ export default function DadosTarefa() {
                 {visualizandoEtapa ? "Etapa / Passo" : "Tarefa Principal"}
               </span>
               {tarefaPai.categories?.name && !visualizandoEtapa && (
-                <span className="text-paragrafo! font-medium px-2.5 py-1 rounded-md bg-gray-100 text-gray-600">
+                <span className="text-paragrafo! font-medium px-2.5 py-1 rounded-md bg-fundo-secundario text-texto-secundaria border border-fundo">
                   {tarefaPai.categories.name}
                 </span>
               )}

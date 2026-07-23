@@ -9,11 +9,11 @@ import {
   DatePicker,
   Select,
   Upload,
-  message,
   App,
+  TimePicker,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
-import { UploadOutlined } from "@ant-design/icons";
+import { InboxOutlined } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
@@ -33,7 +33,7 @@ interface FormTaskValues {
   title: string;
   description: string;
   due_date: Dayjs;
-  hora: string;
+  hora: Dayjs;
   category_id: string;
   task_files?: UploadFile[];
 }
@@ -42,6 +42,8 @@ interface iCategoriaOption {
   value: string;
   label: string;
 }
+
+const { Dragger } = Upload;
 
 export default function ModalTarefa({
   tipo,
@@ -114,9 +116,7 @@ export default function ModalTarefa({
           title: dadosEdicao.title,
           description: dadosEdicao.description,
           due_date: dataMetadados.isValid() ? dataMetadados : undefined,
-          hora: dataMetadados.isValid()
-            ? dataMetadados.format("HH:mm")
-            : undefined,
+          hora: dataMetadados.isValid() ? dataMetadados : undefined,
           category_id: dadosEdicao.category_id,
           task_files: arquivosFormatados,
         });
@@ -134,85 +134,129 @@ export default function ModalTarefa({
       }
 
       const dataBase = values.due_date.format("YYYY-MM-DD");
-      const horaBase = values.hora;
+      const horaBase = values.hora.format("HH:mm");
       const stringDataHoraCompleta = `${dataBase}T${horaBase}:00`;
       const due_date_formatado = dayjs(stringDataHoraCompleta).toISOString();
 
       let targetTaskId = dadosEdicao?.id;
 
-      const payload = {
-        user_id: user.id,
-        title: values.title,
-        description: values.description,
-        category_id: values.category_id,
-        due_date: due_date_formatado,
-      };
-
-      if (isModoEdicao) {
+      if (isModoEdicao && targetTaskId) {
         const { error: updateError } = await supabase
           .from("tasks")
-          .update(payload)
+          .update({
+            title: values.title,
+            description: values.description,
+            due_date: due_date_formatado,
+            category_id: values.category_id,
+          })
           .eq("id", targetTaskId);
 
         if (updateError) throw updateError;
+
+        const arquivosAntigos = dadosEdicao.task_files || [];
+        const UIDsMantidos = (values.task_files || [])
+          .map((f) => f.uid)
+          .filter(Boolean);
+
+        const arquivosRemovidos = arquivosAntigos.filter(
+          (file) => !UIDsMantidos.includes(file.id),
+        );
+
+        if (arquivosRemovidos.length > 0) {
+          const idsParaDeletar = arquivosRemovidos.map((f) => f.id);
+          const pathsParaDeletar = arquivosRemovidos.map((f) => f.file_path);
+
+          const { error: dbDeleteError } = await supabase
+            .from("task_files")
+            .delete()
+            .in("id", idsParaDeletar);
+
+          if (dbDeleteError)
+            console.error("Erro ao deletar do DB:", dbDeleteError);
+
+          const { error: storageDeleteError } = await supabase.storage
+            .from("task-attachments")
+            .remove(pathsParaDeletar);
+
+          if (storageDeleteError)
+            console.error("Erro ao deletar do Storage:", storageDeleteError);
+        }
       } else {
         const { data: taskData, error: taskError } = await supabase
           .from("tasks")
-          .insert([{ ...payload, is_completed: false }])
+          .insert([
+            {
+              title: values.title,
+              description: values.description,
+              due_date: due_date_formatado,
+              category_id: values.category_id,
+              user_id: user.id,
+            },
+          ])
           .select()
           .single();
 
         if (taskError) throw taskError;
-        targetTaskId = taskData?.id;
+        targetTaskId = taskData.id;
       }
 
-      const fileList = values.task_files || [];
-      if (fileList.length > 0 && targetTaskId) {
-        for (const file of fileList) {
-          const originFile = file.originFileObj;
-          if (!originFile) continue;
+      if (values.task_files && values.task_files.length > 0 && targetTaskId) {
+        const novosArquivos = values.task_files.filter(
+          (file) => file.originFileObj,
+        );
 
-          const fileExt = originFile.name.split(".").pop();
-          const uniqueFileName = `${crypto.randomUUID()}.${fileExt}`;
-          const filePath = `${user.id}/${targetTaskId}/${uniqueFileName}`;
+        for (const file of novosArquivos) {
+          if (!file.originFileObj) continue;
+
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${Math.random()}.${fileExt}`;
+          const filePath = `${user.id}/${targetTaskId}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from("task-attachments")
-            .upload(filePath, originFile);
+            .upload(filePath, file.originFileObj);
 
           if (uploadError) throw uploadError;
 
-          const { error: fileTableError } = await supabase
+          const { error: dbFileError } = await supabase
             .from("task_files")
             .insert([
               {
                 task_id: targetTaskId,
-                step_id: null,
-                file_name: originFile.name,
+                file_name: file.name,
                 file_path: filePath,
-                file_type: originFile.type,
+                file_type: file.type || "unknown",
               },
             ]);
 
-          if (fileTableError) throw fileTableError;
+          if (dbFileError) throw dbFileError;
         }
       }
 
       notification.success({
-        title: "Sucesso!",
-        description: isModoEdicao
-          ? "Tarefa atualizada com sucesso!"
-          : "Tarefa adicionada com sucesso!",
+        title: isModoEdicao ? "Tarefa atualizada!" : "Tarefa criada!",
+        message: isModoEdicao
+          ? "A tarefa foi editada com sucesso."
+          : "A nova tarefa foi salva com sucesso.",
       });
+
       form.resetFields();
       handleSetOpen(false);
 
-      if (onSuccess) onSuccess();
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: unknown) {
       console.error("Erro ao salvar tarefa:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Tente novamente.";
-      message.error(`Erro ao salvar tarefa: ${errorMessage}`);
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar a tarefa.";
+
+      notification.error({
+        title: "Erro ao salvar",
+        message: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -247,6 +291,14 @@ export default function ModalTarefa({
         }}
         cancelText="Cancelar"
         okText={isModoEdicao ? "Salvar Alterações" : "Salvar"}
+        width={{
+          xs: "90%",
+          sm: "80%",
+          md: "70%",
+          lg: "60%",
+          xl: "50%",
+          xxl: "40%",
+        }}
       >
         <Form
           form={form}
@@ -302,22 +354,11 @@ export default function ModalTarefa({
                 { required: true, message: "Por favor, selecione o horário" },
               ]}
             >
-              <Select
-                placeholder="Selecione"
-                options={[
-                  { value: "09:00", label: "09:00" },
-                  { value: "10:00", label: "10:00" },
-                  { value: "11:00", label: "11:00" },
-                  { value: "12:00", label: "12:00" },
-                  { value: "13:00", label: "13:00" },
-                  { value: "14:00", label: "14:00" },
-                  { value: "15:00", label: "15:00" },
-                  { value: "16:00", label: "16:00" },
-                  { value: "17:00", label: "17:00" },
-                  { value: "18:00", label: "18:00" },
-                  { value: "19:00", label: "19:00" },
-                  { value: "20:00", label: "20:00" },
-                ]}
+              <TimePicker
+                format="HH:mm"
+                minuteStep={15}
+                className="w-full!"
+                placeholder="Selecione o horário"
                 size="large"
               />
             </Form.Item>
@@ -346,11 +387,18 @@ export default function ModalTarefa({
               e: UploadFile[] | { fileList: UploadFile[] },
             ) => (Array.isArray(e) ? e : e?.fileList)}
           >
-            <Upload multiple beforeUpload={() => false}>
-              <Button icon={<UploadOutlined />} size="large">
-                Clique para fazer Upload
-              </Button>
-            </Upload>
+            <Dragger multiple={true} beforeUpload={() => false} maxCount={5}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">
+                Clique ou arraste arquivos para esta área para fazer upload
+              </p>
+              <p className="ant-upload-hint">
+                Suporta até 5 arquivos simultâneos (PDF, PNG, JPG, DOCX) de no
+                máximo 10MB cada.
+              </p>
+            </Dragger>
           </Form.Item>
         </Form>
       </Modal>

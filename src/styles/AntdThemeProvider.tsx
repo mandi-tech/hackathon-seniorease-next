@@ -11,8 +11,8 @@ import {
 } from "@/src/styles/theme";
 
 type ThemeMode = "light" | "dark" | "high-contrast";
-type FontSizeScale = "small" | "medium" | "large";
-type SpacingScale = "compact" | "normal" | "spacious";
+type FontSizeScale = "small" | "medium" | "large" | "extra-large";
+type SpacingScale = "compact" | "normal" | "spacious" | "wide";
 
 export default function AntdThemeProvider({
   children,
@@ -26,7 +26,6 @@ export default function AntdThemeProvider({
 
   useEffect(() => {
     const checkThemeAndA11y = () => {
-      // --- Lógica de Contraste e Tema ---
       const isHighContrastAttr =
         document.documentElement.getAttribute("data-contrast") === "high";
       const prefersContrast = window.matchMedia(
@@ -44,32 +43,29 @@ export default function AntdThemeProvider({
         setThemeMode("light");
       }
 
-      // --- Lógica de Tamanho de Fonte Dinâmico ---
       const fontAttr = document.documentElement.getAttribute(
         "data-font-size",
       ) as FontSizeScale;
       if (fontAttr) setFontSizeScale(fontAttr);
+      else setFontSizeScale("medium");
 
-      // --- Lógica de Espaçamento Dinâmico ---
       const spacingAttr = document.documentElement.getAttribute(
         "data-spacing",
       ) as SpacingScale;
       if (spacingAttr) setSpacingScale(spacingAttr);
+      else setSpacingScale("normal");
     };
 
-    // Agenda a montagem e verificação inicial de forma assíncrona para evitar render em cascata síncrono
     queueMicrotask(() => {
       setMounted(true);
       checkThemeAndA11y();
     });
 
-    // Media Queries listeners
     const darkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const contrastMediaQuery = window.matchMedia("(prefers-contrast: more)");
     darkMediaQuery.addEventListener("change", checkThemeAndA11y);
     contrastMediaQuery.addEventListener("change", checkThemeAndA11y);
 
-    // Observer para escutar as mudanças de atributos no HTML feito por botões de acessibilidade
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (
@@ -94,26 +90,39 @@ export default function AntdThemeProvider({
     };
   }, []);
 
-  // Função auxiliar para calcular os tamanhos de fonte do AntD baseado na escala
   const getFontTokens = (scale: FontSizeScale) => {
-    const baseSizes = {
+    const baseSizes: Record<
+      string,
+      {
+        fontSize: number;
+        fontSizeLG: number;
+        fontSizeSM: number;
+        fontSizeXL: number;
+      }
+    > = {
       small: { fontSize: 12, fontSizeLG: 14, fontSizeSM: 11, fontSizeXL: 16 },
       medium: { fontSize: 14, fontSizeLG: 16, fontSizeSM: 12, fontSizeXL: 20 },
       large: { fontSize: 18, fontSizeLG: 20, fontSizeSM: 16, fontSizeXL: 24 },
+      "extra-large": {
+        fontSize: 22,
+        fontSizeLG: 24,
+        fontSizeSM: 18,
+        fontSizeXL: 28,
+      },
     };
-    return baseSizes[scale];
+    return baseSizes[scale] || baseSizes.medium;
   };
 
-  // Função auxiliar para injetar modificadores de espaçamento e padding
   const getSpacingTokens = (scale: SpacingScale) => {
     switch (scale) {
       case "compact":
         return { padding: 8, margin: 8, controlHeight: 28 };
       case "spacious":
-        return { padding: 20, margin: 20, controlHeight: 45 };
+      case "wide":
+        return { padding: 24, margin: 24, controlHeight: 48 };
       case "normal":
       default:
-        return { padding: 16, margin: 16, controlHeight: 32 };
+        return { padding: 16, margin: 16, controlHeight: 36 };
     }
   };
 

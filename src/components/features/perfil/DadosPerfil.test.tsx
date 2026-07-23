@@ -6,12 +6,10 @@ import * as AuthContext from "@/src/contexts/AuthContext";
 import * as Navigation from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
-// Mock do next/navigation
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
-// Mock do hook useAuth
 vi.mock("@/src/contexts/AuthContext", () => ({
   useAuth: vi.fn(),
   AuthProvider: ({ children }: { children: React.ReactNode }) => (
@@ -44,6 +42,7 @@ describe("DadosPerfil Component", () => {
       signUp: vi.fn(),
       signOut: vi.fn(),
       updatePreferences: vi.fn(),
+      updateProfile: vi.fn(),
     });
 
     const { container } = render(<DadosPerfil />);
@@ -75,6 +74,7 @@ describe("DadosPerfil Component", () => {
       signUp: vi.fn(),
       signOut: vi.fn(),
       updatePreferences: vi.fn(),
+      updateProfile: vi.fn(),
     });
 
     render(<DadosPerfil />);
@@ -107,11 +107,12 @@ describe("DadosPerfil Component", () => {
       signUp: vi.fn(),
       signOut: vi.fn(),
       updatePreferences: vi.fn(),
+      updateProfile: vi.fn(),
     });
 
     render(<DadosPerfil />);
 
-    const editButton = screen.getByRole("button", { name: /editar/i });
+    const editButton = screen.getByRole("button", { name: /^editar$/i });
     expect(editButton).toBeInTheDocument();
 
     fireEvent.click(editButton);
@@ -128,6 +129,7 @@ describe("DadosPerfil Component", () => {
       signUp: vi.fn(),
       signOut: vi.fn(),
       updatePreferences: vi.fn(),
+      updateProfile: vi.fn(),
     });
 
     render(<DadosPerfil />);

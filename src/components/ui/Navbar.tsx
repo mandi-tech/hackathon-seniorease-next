@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Avatar } from "antd";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { getInitials } from "@/src/libs/utils/formatters";
-import { LogoutOutlined, SettingOutlined } from "@ant-design/icons";
+import { LogoutOutlined } from "@ant-design/icons";
 import { User } from "lucide-react";
 
 export default function Navbar() {

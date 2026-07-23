@@ -39,8 +39,44 @@ body {
   background: var(--theme-fundo);
   color: var(--theme-texto);
   font-size: var(--theme-paragrafo);
+  font-family:
+    var(--font-atkinson),
+    system-ui,
+    -apple-system,
+    sans-serif;
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
     font-size 0.2s ease;
+}
+
+/* Feedback Visual Reforçado (Preferência: visual_feedback = true) */
+html[data-visual-feedback="high"] button:focus-visible,
+html[data-visual-feedback="high"] a:focus-visible,
+html[data-visual-feedback="high"] input:focus,
+html[data-visual-feedback="high"] .ant-btn:focus,
+html[data-visual-feedback="high"] .ant-input:focus {
+  outline: 3px solid var(--theme-primaria) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 4px var(--theme-lavanda) !important;
+}
+
+html[data-visual-feedback="high"] button:hover,
+html[data-visual-feedback="high"] a:hover {
+  filter: brightness(1.15);
+  transform: scale(1.02);
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
+}
+
+/* Ajustes de Alto Contraste Global */
+html[data-contrast="high"] {
+  --theme-fundo: #000000;
+  --theme-fundo-secundario: #121212;
+  --theme-texto: #ffffff;
+  --theme-texto-secundario: #ffff00;
+  --theme-primaria: #ffff00;
+  --theme-secundaria: #ffffff;
+  --theme-borda: #ffffff;
 }
