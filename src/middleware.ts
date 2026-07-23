@@ -16,26 +16,23 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
+            request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
-  // Bypass do middleware em ambiente de teste E2E para permitir testes herméticos com page.route
   if (process.env.NEXT_PUBLIC_IS_E2E === "true") {
     return supabaseResponse;
   }
 
-  // Para garantir a segurança de dados, usamos getUser() no middleware.
-  // Isso entra em contato com o servidor do Supabase para verificar se o token é válido.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -44,14 +41,12 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/novo_cadastro");
 
-  // Se o usuário não estiver logado e tentar acessar uma rota interna protegida, redireciona para login
   if (!user && !isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Se o usuário já estiver logado e tentar ir para login ou cadastro, redireciona para a home
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/";

@@ -1,7 +1,6 @@
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
-// Ant Design e outros componentes dependem de matchMedia e ResizeObserver. Mockando para evitar erros nos testes.
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: (query: string) => ({
     matches: false,

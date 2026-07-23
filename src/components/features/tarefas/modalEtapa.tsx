@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { Button, Modal, Form, Input, Upload, App } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
-import { UploadOutlined } from "@ant-design/icons";
+import { InboxOutlined } from "@ant-design/icons";
 import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { iFileAttachment, iTaskStep } from "@/src/libs/types/iTarefa";
+import { iTaskStep } from "@/src/libs/types/iTarefa";
 import { Pencil, Plus } from "lucide-react";
 
 export interface iModalEtapaProps {
@@ -21,6 +21,8 @@ interface FormStepValues {
   instruction: string;
   task_files?: UploadFile[];
 }
+
+const { Dragger } = Upload;
 
 export default function ModalEtapa({
   idTarefaPai,
@@ -50,28 +52,35 @@ export default function ModalEtapa({
 
   useEffect(() => {
     if (open) {
-      if (dadosEdicao) {
+      if (isModoEdicao && dadosEdicao) {
+        const arquivosIniciais: UploadFile[] = (
+          dadosEdicao.task_files || []
+        ).map((file) => ({
+          uid: file.id,
+          name: file.file_name,
+          status: "done",
+          url: supabase.storage
+            .from("task-attachments")
+            .getPublicUrl(file.file_path).data.publicUrl,
+        }));
+
         form.setFieldsValue({
           instruction: dadosEdicao.instruction,
+          task_files: arquivosIniciais,
         });
       } else {
         form.resetFields();
       }
     }
-  }, [open, dadosEdicao, form]);
+  }, [open, isModoEdicao, dadosEdicao, form, supabase]);
 
   const handleSalvarEtapa = async (values: FormStepValues) => {
-    if (!user) {
-      notification.error({
-        title: "Erro de autenticação",
-        description: "Você precisa estar logado para realizar esta ação.",
-      });
-      return;
-    }
-
     setLoading(true);
-
     try {
+      if (!user) {
+        throw new Error("Usuário não autenticado no sistema.");
+      }
+
       let targetStepId = dadosEdicao?.id;
 
       if (isModoEdicao && targetStepId) {
@@ -81,6 +90,35 @@ export default function ModalEtapa({
           .eq("id", targetStepId);
 
         if (updateError) throw updateError;
+
+        const arquivosAntigos = dadosEdicao.task_files || [];
+        const UIDsMantidos = (values.task_files || [])
+          .map((f) => f.uid)
+          .filter(Boolean);
+
+        const arquivosRemovidos = arquivosAntigos.filter(
+          (file) => !UIDsMantidos.includes(file.id),
+        );
+
+        if (arquivosRemovidos.length > 0) {
+          const idsParaDeletar = arquivosRemovidos.map((f) => f.id);
+          const pathsParaDeletar = arquivosRemovidos.map((f) => f.file_path);
+
+          const { error: dbDeleteError } = await supabase
+            .from("task_files")
+            .delete()
+            .in("id", idsParaDeletar);
+
+          if (dbDeleteError)
+            console.error("Erro ao deletar task_files:", dbDeleteError);
+
+          const { error: storageDeleteError } = await supabase.storage
+            .from("task-attachments")
+            .remove(pathsParaDeletar);
+
+          if (storageDeleteError)
+            console.error("Erro ao deletar do Storage:", storageDeleteError);
+        }
       } else {
         const { count } = await supabase
           .from("task_steps")
@@ -105,50 +143,45 @@ export default function ModalEtapa({
         if (stepError) throw stepError;
         targetStepId = stepData.id;
       }
-      // Processamento e upload de arquivos anexos
+
       if (values.task_files && values.task_files.length > 0 && targetStepId) {
-        for (const fileItem of values.task_files) {
-          const originFile = fileItem.originFileObj;
-          if (!originFile) continue;
+        const novosArquivos = values.task_files.filter(
+          (file) => file.originFileObj,
+        );
 
-          // Caminho no bucket incluindo user.id na raiz para respeitar a política RLS do Storage
-          const filePath = `${user.id}/${idTarefaPai}/${targetStepId}/${originFile.name}`;
+        for (const file of novosArquivos) {
+          if (!file.originFileObj) continue;
 
-          // Upload no bucket correto 'task-attachments'
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${Math.random()}.${fileExt}`;
+          const filePath = `${user.id}/${targetStepId}/${fileName}`;
+
           const { error: uploadError } = await supabase.storage
             .from("task-attachments")
-            .upload(filePath, originFile, { upsert: true });
+            .upload(filePath, file.originFileObj);
 
-          if (uploadError) {
-            console.error("Erro no upload do storage:", uploadError);
-            throw uploadError;
-          }
+          if (uploadError) throw uploadError;
 
-          // Vinculação na tabela 'task_files' com task_id como null
-          const { error: fileTableError } = await supabase
+          const { error: dbFileError } = await supabase
             .from("task_files")
             .insert([
               {
-                task_id: null,
                 step_id: targetStepId,
-                file_name: originFile.name,
+                file_name: file.name,
                 file_path: filePath,
-                file_type: originFile.type,
+                file_type: file.type || "unknown",
               },
             ]);
 
-          if (fileTableError) {
-            console.error("Erro na tabela task_files:", fileTableError);
-            throw fileTableError;
-          }
+          if (dbFileError) throw dbFileError;
         }
       }
 
       notification.success({
-        title: isModoEdicao ? "Etapa atualizada" : "Etapa criada",
-        description: isModoEdicao
-          ? "A etapa foi atualizada com sucesso!"
-          : "Nova etapa adicionada à tarefa!",
+        title: isModoEdicao ? "Etapa atualizada!" : "Etapa adicionada!",
+        message: isModoEdicao
+          ? "A etapa foi editada com sucesso."
+          : "A nova etapa foi inserida na tarefa.",
       });
 
       form.resetFields();
@@ -157,12 +190,16 @@ export default function ModalEtapa({
       if (onSuccess) {
         onSuccess();
       }
-    } catch (err: unknown) {
+    } catch (error: unknown) {
+      console.error("Erro ao salvar etapa:", error);
       const errorMessage =
-        err instanceof Error ? err.message : "Erro inesperado ao salvar etapa";
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar a etapa.";
+
       notification.error({
         title: "Erro ao salvar",
-        description: errorMessage,
+        message: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -231,11 +268,18 @@ export default function ModalEtapa({
               e: UploadFile[] | { fileList: UploadFile[] },
             ) => (Array.isArray(e) ? e : e?.fileList)}
           >
-            <Upload multiple beforeUpload={() => false}>
-              <Button icon={<UploadOutlined />}>
-                Selecionar arquivos para a etapa
-              </Button>
-            </Upload>
+            <Dragger multiple={true} beforeUpload={() => false} maxCount={5}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">
+                Clique ou arraste arquivos para esta área para fazer upload
+              </p>
+              <p className="ant-upload-hint">
+                Suporta até 5 arquivos simultâneos (PDF, PNG, JPG, DOCX) de no
+                máximo 10MB cada.
+              </p>
+            </Dragger>
           </Form.Item>
         </Form>
       </Modal>

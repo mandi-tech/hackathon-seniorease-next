@@ -33,7 +33,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <App>
-            <AntdThemeProvider>{children}</AntdThemeProvider>
+            <AntdThemeProvider>
+              <section className="flex justify-center items-center h-screen! w-full">
+                <div>{children}</div>
+              </section>
+            </AntdThemeProvider>
           </App>
         </AuthProvider>
       </body>

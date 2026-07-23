@@ -48,6 +48,11 @@ interface AuthContextType {
   updatePreferences: (
     prefs: Partial<UserPreferences>,
   ) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (data: {
+    name?: string;
+    email?: string;
+    password?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -398,6 +403,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProfile = async (data: {
+    name?: string;
+    email?: string;
+    password?: string;
+  }): Promise<{ success: boolean; error?: string }> => {
+    if (!user) return { success: false, error: "Nenhum usuário logado." };
+
+    try {
+      const authUpdates: {
+        email?: string;
+        password?: string;
+        data?: { name?: string };
+      } = {};
+
+      const emailMudou =
+        data.email && data.email.trim() !== "" && data.email !== user.email;
+
+      if (emailMudou) {
+        authUpdates.email = data.email;
+      }
+      if (data.password && data.password.trim() !== "") {
+        authUpdates.password = data.password;
+      }
+      if (data.name) {
+        authUpdates.data = { name: data.name };
+      }
+
+      if (Object.keys(authUpdates).length > 0) {
+        const { error: authError } =
+          await supabase.auth.updateUser(authUpdates);
+        if (authError) {
+          return { success: false, error: authError.message };
+        }
+      }
+
+      if (data.name) {
+        const { data: updatedProfile, error: profileError } = await supabase
+          .from("profiles")
+          .update({ name: data.name })
+          .eq("id", user.id)
+          .select()
+          .maybeSingle();
+
+        if (profileError) {
+          return { success: false, error: profileError.message };
+        }
+
+        if (updatedProfile) {
+          setProfile(updatedProfile);
+        }
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Erro desconhecido ao atualizar dados do perfil.";
+      return { success: false, error: errorMessage };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -409,6 +476,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         updatePreferences,
+        updateProfile,
       }}
     >
       {children}
