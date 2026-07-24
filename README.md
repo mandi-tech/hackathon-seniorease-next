@@ -1,45 +1,51 @@
 <h1 align="center">
-  Hackaton - Fase 5: SeniorEase
+  Hackathon - Pós Tech FIAP: SeniorEase
 </h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16.2.4-000000?logo=nextdotjs&logoColor=white" alt="Next.js" />
-  <img src="https://img.shields.io/badge/React-19.2.5-61DAFB?logo=react&logoColor=black" alt="React" />
-  <img src="https://img.shields.io/badge/Ant_Design-6.3.7-0170FE?logo=antdesign&logoColor=white" alt="Ant Design" />
-  <img src="https://img.shields.io/badge/GraphQL-Apollo_Client-E10098?logo=graphql&logoColor=white" alt="Apollo Client" />
-  <img src="https://img.shields.io/badge/Storybook-10.4.0-FF4785?logo=storybook&logoColor=white" alt="Storybook" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4.2.4-38BDF8?logo=tailwindcss&logoColor=white" alt="Tailwind" />
+  <img src="https://img.shields.io/badge/Next.js-16.2.9-000000?logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-19.2.4-61DAFB?logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4.0-38BDF8?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Ant_Design-6.4.4-0170FE?logo=antdesign&logoColor=white" alt="Ant Design" />
+  <img src="https://img.shields.io/badge/Supabase-SSR-3ECF8E?logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Vitest-3.2.7-6E9F18?logo=vitest&logoColor=white" alt="Vitest" />
   <img src="https://img.shields.io/badge/Status-Completo-green" alt="Status" />
 </p>
 
-> Aplicação Web robusta para gerenciamento financeiro pessoal desenvolvida em Next.js (App Router). O sistema conta com autenticação segura, dashboard com indicadores visuais de performance, extratos detalhados com filtros via URL e uma arquitetura focada em componentização isolada documentada no Storybook.
+> Aplicação Web focada em **Acessibilidade Digital para Idosos** em ambientes
+> acadêmicos e profissionais, desenvolvida com **Next.js (App Router)**. A
+> plataforma propicia autonomia, previsibilidade e conforto cognitivo por meio
+> de ajustes de legibilidade, interface simplificada, gerenciador de tarefas
+> guiado e preferências persistentes.
+
+---
 
 ## 📑 Sumário
 
-- 📱 [Sobre o projeto](#sobre)
+- 📱 [Sobre o Projeto](#sobre)
 - 🛠 [Tecnologias](#tecnologias)
-- ✨ [Funcionalidades](#funcionalidades)
-- 🏗 [Arquitetura e Padrões](#arquitetura)
+- ✨ [Funcionalidades Principais](#funcionalidades)
+- 🏗 [Arquitetura e Boas Práticas](#arquitetura)
 - 📂 [Estrutura do Projeto](#estrutura)
-- 🎨 [Design Tokens & Sistema de Temas](#design-system)
-- 🚀 [Executando o projeto](#exe)
+- 🧪 [Testes e Qualidade](#testes)
+- 🚀 [Executando o Projeto](#executando)
 - 🎥 [Demonstração](#demonstracao)
 - 👥 [Equipe](#equipe)
 
 ---
 
-> [!TIP]
-> É possível navegar pelos tópicos da nossa documentação de forma mais facilitada! [Basta acessar a nossa wiki.](https://github.com/mandi-tech/tc4-next-refactor/wiki)
-
----
-
 <span id="sobre">
 
-## 📱 Sobre o projeto
+## 📱 Sobre o Projeto
 
-Este projeto foi desenvolvido como parte do **Hackaton - Fase 05** da Pós Tech.
+Projeto final do **Hackathon - Pós-Tech FIAP (Front-End Engineering)** em
+parceria fictícia com a instituição _FIAP Inclusive_.
 
-A aplicação foi planejada sob a ótica de engenharia de software modular, unindo o ecossistema reativo do **React** e do **Next.js** à segurança de tipos do **TypeScript**. Além de entregar regras de negócio financeiras, o projeto destaca-se por possuir um catálogo visual estrito que documenta desde os átomos fundamentais de design (tokens de cor, espaçamento, sombras) até os organismos de dados complexos (gráficos e modais integrados com GraphQL).
+O **SeniorEase** foi idealizado para mitigar as barreiras digitais enfrentadas
+pela terceira idade — como redução de acuidade visual, perda gradual de memória
+e dificuldades na coordenação motora fina. A solução entrega uma interface
+adaptável, com alto contraste, fontes ajustáveis, navegação preditiva e
+confirmações reforçadas para evitar ações acidentais.
 
 ---
 
@@ -47,56 +53,78 @@ A aplicação foi planejada sob a ótica de engenharia de software modular, unin
 
 ## 🛠 Tecnologias
 
-A stack de ferramentas do projeto compreende as seguintes tecnologias:
+A stack do projeto é composta por:
 
-### Core Frontend
-- **Next.js (App Router)** — Divisão estrutural de rotas através de grupos de rotas (layouts de autenticação e dashboard).
-- **TypeScript** — Tipagem estrita de contratos de dados, interfaces e propriedades de componentes.
+### Core & Frameworks
 
-### Camada de Rede & Dados (API)
-- **Apollo Client (GraphQL)** — Cliente unificado para gerenciar requisições de Queries e Mutations, controle automático de cache e injeção de dados assíncronos.
+- **Next.js 16 (App Router & Turbopack)** — Roteamento baseado no sistema de
+  arquivos, renderização otimizada e middlewares.
+- **React 19** — Construção de componentes reativos e gerenciamento de estado.
+- **TypeScript** — Tipagem estrita de contratos de dados, props e utilitários.
+
+### Backend & Autenticação
+
+- **Supabase (`@supabase/supabase-js` & `@supabase/ssr`)** — Autenticação
+  segura, banco de dados PostgreSQL e persistência de preferências do usuário.
 
 ### Interface & Estilização
-- **Ant Design (AntD)** — Componentes de UI de alta fidelidade (Formulários, Inputs, DatePickers, Modais).
-- **Tailwind CSS** — Utilitários de estilização atômica para agilidade e consistência visual.
 
-### Documentação & Ferramental
-- **Storybook** — Suite de isolamento visual para desenvolvimento, validação de estados de componentes e testes rápidos de layouts.
+- **Tailwind CSS v4** — Estilização utilitária atômica e responsiva.
+- **Ant Design (AntD v6)** — Componentes de UI acessíveis e estruturados.
+- **Lucide React** — Iconografia clara, legível e de alto contraste.
+
+### Testes & Qualidade
+
+- **Vitest & React Testing Library** — Testes unitários e de integração de
+  componentes.
+- **Playwright** — Testes End-to-End (E2E) simulando fluxos completos de
+  navegação.
 
 ---
 
 <span id="funcionalidades">
 
-## ✨ Funcionalidades
+## ✨ Funcionalidades Principais
 
-### 🔐 Autenticação e Segurança
-- **Proteção de Rotas:** Utilização de `auth-guard.tsx` para assegurar que apenas usuários validados acessem o ecossistema interno.
-- **Interfaces Dedicadas:** Fluxos isolados e modulares para o formulário de Login (`LoginForm`) e registro de novas contas (`RegisterForm`).
+### ⚙️ 1. Painel de Personalização da Experiência
 
-### 📊 Dashboard e Visualização de Indicadores
-- **Gráficos Avançados:** Exibição analítica de movimentações por meio de gráficos combinados (`ComposedChart`) e gráficos de rosca (`DonutChart`).
-- **Sumários em Cards:** Componentes flexíveis de cartões (`Card`) para apresentar receitas, despesas e saldos consolidados.
+- **Ajuste Dinâmico de Legibilidade:** Redimensionamento de fontes (pequeno,
+  médio, grande, extra grande) e espaçamento entre linhas/elementos.
+- **Modos de Contraste:** Alternância rápida para alto contraste ou modo de
+  leitura confortável.
+- **Simplificação de Interface:** Alternância entre Modo Básico (foco total na
+  tarefa) e Modo Avançado.
+- **Proteção Cognitiva:** Confirmações adicionais antes de executar ações
+  destrutivas ou críticas.
 
-### 💸 Extrato e Filtros Reativos
-- **Sincronização via URL:** Barra de `Filtros` acoplada diretamente à URL da aplicação através de parâmetros de busca (`searchParams`), mantendo o estado permanente a recarregamentos.
-- **Tabela Estruturada:** Listagem de transações com componentes dinâmicos de dados (`Table`).
+### 📋 2. Organizador de Atividades Simplificado
 
-### ➕ Cadastro e Modificação de Registros
-- **Modal Multifuncional:** O `ModalTransacao` gerencia de forma inteligente a criação e edição de transações, efetuando o mapeamento reativo de categorias (entradas ou saídas) de acordo com o tipo escolhido.
+- **Lista de Tarefas Descomplicada:** Visualização limpa e intuitiva das
+  pendências diárias e acadêmicas.
+- **Fluxo Guiado Passo a Passo:** Detalhamento de etapas de execução com
+  feedbacks visuais claros e positivos ao concluir.
+- **Lembretes e Histórico:** Alertas em linguagem clara e registro acessível de
+  atividades finalizadas.
+
+### 👤 3. Perfil do Usuário e Persistência de Preferências
+
+- **Salvar na Nuvem:** Todas as preferências de acessibilidade e configurações
+  de conta ficam sincronizadas via Supabase para que o idoso mantenha sua
+  experiência configurada em qualquer dispositivo.
 
 ---
 
 <span id="arquitetura">
 
-## 🏗 Arquitetura e Padrões
+## 🏗 Arquitetura e Boas Práticas
 
-O projeto foi organizado com base em responsabilidades isoladas e no ecossistema nativo do Next.js App Router:
-
-1. **Roteamento Baseado em Grupos (Routing Groups):** Divisão clara usando diretórios entre parênteses — `(auth)` para escopos de entrada e `(dashboard)` para a aplicação principal — evitando impactos cruzados em layouts.
-2. **Separação UI vs. Features:** 
-   - A pasta `components/ui` agrupa componentes visuais puros e primitivos (`Button`, `Card`, `Table`).
-   - A pasta `components/features` centraliza componentes que dependem de estado de negócio ou chamadas de API (`modals`, `filtros`, `auth`).
-3. **Desacoplamento de Dados com Custom Hooks:** Toda a lógica de comunicação GraphQL está encapsulada em ganchos reutilizáveis dentro da pasta `hooks/` (`use-transacoes.ts`, `use-dashboard.ts`), mantendo os componentes visuais focados estritamente em renderização.
+- **Clean Architecture & Separation of Concerns:** Camada de UI desacoplada das
+  regras de negócio e chamadas ao Supabase.
+- **Design de Componentes Acessíveis:** Botões e áreas de clique ampliadas
+  (mínimo 48x48px), contraste em conformidade com as diretrizes WCAG e navegação
+  previsível.
+- **Feedback Visual Reforçado:** Indicadores claros de status, mensagens
+  explicativas de erro e sucesso sem uso exclusivo de cores para diferenciação.
 
 ---
 
@@ -106,111 +134,75 @@ O projeto foi organizado com base em responsabilidades isoladas e no ecossistema
 
 ```text
 src/
-├───app/                          # Sistema de rotas e layouts do Next.js
-│   ├───(auth)/                   # Grupo de rotas públicas de Autenticação (Login/Cadastro)
-│   └───(dashboard)/              # Grupo de rotas privadas (Painel e Extrato)
-├───components/                   # Módulos e Componentes reutilizáveis de interface
-│   ├───features/                 # Componentes acoplados a regras e lógica de negócio
-│   │   ├───auth/                 # Guardas de autenticação e formulários estruturados
-│   │   ├───filtros/              # Componente de filtros de busca amarrados à URL
-│   │   └───modals/               # Modal híbrido de criação e modificação de transações
-│   └───ui/                       # Primitivos visuais puros baseados no Ant Design
-│       ├───Button/
-|       ├───Card/                 # Elementos de micro-interação e wrappers
-│       ├───Charts/               # Abstrações de gráficos (Composed e Donut)
-│       ├───SidebarMenu/
-|       └───Topbar/               # Peças estruturais e de navegação de layouts
-├───context/                      # Contextos de controle global de estado (ex: Sidebar open/close)
-├───graphql/                      # Camada de definição do esquema GraphQL (Queries e Mutations)
-├───hooks/                        # React Hooks customizados para isolar chamadas de dados
-├───libs/                         # Infraestrutura de dados, utilitários e definições globais
-│   ├───types/                    # Interfaces centrais de tipagem TypeScript
-│   └───utils/                    # Validadores, formatadores e helpers auxiliares
-└───styles/                       # Arquivos globais de estilos e tokens de design do sistema
-    └───theme/                    # Subdivisões explícitas dos tokens documentados no Storybook
-        ├───borderRadius/
-        ├───colors/
-        ├───shadows/
-        ├───spacing/
-        └───typhography/
+├── app/                          # Rotas e Páginas do Next.js (App Router)
+│   ├── (auth)/                   # Páginas públicas (Login e Cadastro)
+│   ├── acessibilidade/           # Painel dedicado a ajustes de contraste e fontes
+│   ├── perfil/                   # Perfil e configurações do usuário
+│   └── tarefas/                  # Organizador e detalhes de tarefas
+├── components/                   # Componentes reutilizáveis
+│   ├── features/                 # Componentes com lógica de negócio (Acessibilidade, Tarefas, Auth)
+│   └── ui/                       # Componentes primitivos puros de interface
+├── context/                      # React Context para preferências de acessibilidade globais
+├── hooks/                        # Custom Hooks para Supabase, temas e gerenciamento de estado
+├── libs/                         # Configuração do cliente Supabase e helpers
+└── styles/                       # Estilos globais e extensões do Tailwind CSS
+
 ```
 
 ---
 
-<span id="design-system">
+<span id="testes">
 
-## 🎨 Design System
+## 🧪 Testes e Qualidade O projeto conta com uma suíte abrangente de testes para
 
-O projeto possui uma arquitetura de **Design System própria**, responsável por centralizar a identidade visual e os componentes de forma escalável através de:
+garantir a estabilidade e acessibilidade:
 
-- ✨ **Tokens Visuais:** Definições estritas de estilo para evitar valores arbitrários (*magic numbers*).
-- 🧩 **Componentes Reutilizáveis:** Componentes puros baseados nas fundações do Ant Design.
-- 🎨 **Temas:** Extensões semânticas amarradas ao Tailwind CSS e arquivos de configuração.
+```
+# Executar testes unitários com Vitest
+npm run test
 
-### 🎨 Tokens
+# Executar suíte de testes E2E com Playwright
+npm run test:e2e
 
-Localizados em: `src/styles/theme/`
+# Abrir a interface visual do Playwright
+npm run test:e2e:ui
+```
 
-#### Cores (`colors/`)
-- `theme.colors.primary` — Cor de destaque da marca (ações principais e links).
-- `theme.colors.secondary` — Tons de suporte para hierarquia visual secundária.
-- `theme.colors.success` — Indicador positivo (receitas, saldos positivos).
-- `theme.colors.error` — Indicador de atenção (despesas, validações de erro).
-- `theme.colors.background` — Base de fundo da aplicação.
-- `theme.colors.surface` — Fundo de elementos flutuantes (cards, modais).
-
-#### Espaçamento (`spacing/`)
-- `theme.spacing.xs` — Ajustes mínimos e paddings internos pequenos.
-- `theme.spacing.sm` — Distância entre elementos de um mesmo bloco.
-- `theme.spacing.md` — Margem padrão entre blocos de conteúdo.
-- `theme.spacing.lg` — Espaçamento entre seções estruturais.
-- `theme.spacing.xl` — Respiro para layouts de grandes áreas.
-
-#### Tipografia & Bordas (`typhography/` e `borderRadius/`)
-- `theme.typography.title` — Títulos de páginas e sumários.
-- `theme.typography.body` — Textos corridos e descrições de tabelas.
-- `theme.typography.button` — Rótulos de ações e micro-interações.
-- `theme.borderRadius.md` — Arredondamento padrão para botões e inputs.
-  
 ---
 
-<span id="exe">
+<span id="executando">
 
 ## 🚀 Executando o Projeto
 
-### 1. Instalar as dependências do projeto
-```Bash
-npm install
-# ou
-yarn install
-```
-
-### 2. Configurar o Ambiente
-Crie um arquivo .env na raiz do projeto e configure a URL de conexão para o seu endpoint GraphQL ativo:
+1. Clonar o repositório e instalar dependências Bash git clone
+   [https://github.com/mandi-tech/hackathon-seniorease-next.git](https://github.com/mandi-tech/hackathon-seniorease-next.git)
+   cd hackathon-seniorease-next npm install
+2. Configurar Variáveis de Ambiente Crie um arquivo .env.local na raiz do
+   projeto com as credenciais do seu projeto Supabase:
 
 ```
-NEXT_PUBLIC_API_URL=https://tc4-backend-graphql-production.up.railway.app/graphql/
-```
-> [!TIP]
-> Se preferir, é possível rodar o projeto [tc4-backend-graphql](https://github.com/mandi-tech/tc4-backend-graphql) e utiliza-lo localmente substituindo o NEXT_PUBLIC_API_URL pela do servidor local. Por padrão, será http://localhost:8080/
-
-### 3. Executar o servidor de desenvolvimento
-```Bash
-npm run dev
-# ou
-yarn dev
+  NEXT_PUBLIC_SUPABASE_URL=[https://seu-projeto.supabase.co](https://seu-projeto.supabase.co)
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-chave-anonima-aqui
 ```
 
-Acesse http://localhost:3000 no seu navegador para ver a aplicação rodando.
+3. Executar o Servidor de Desenvolvimento
+
+```
+  npm run dev
+```
+
+Acesse http://localhost:3000 no seu navegador para testar a aplicação
+localmente.
 
 ---
 
 <span id="demonstracao">
 
 ## 🎥 Demonstração
-O vídeo abaixo apresenta o fluxo completo da aplicação web: telas de autenticação e proteção de rotas, navegação responsiva, filtragem via parâmetros na URL, abertura e validação do formulário no modal, além de um tour completo pelo ecossistema de componentes e tokens documentados dentro do Storybook:
 
-[Assista ao Vídeo de Demonstração no YouTube](https://www.youtube.com/watch?v=THis5gU93Ck)
+[Vídeo de demonstração](https://github.com/mandi-tech/hackathon-seniorease-next.git)
+
+[Link do projeto em Produção](http://54.167.224.119/)
 
 ---
 
@@ -218,7 +210,7 @@ O vídeo abaixo apresenta o fluxo completo da aplicação web: telas de autentic
 
 ## 👥 Equipe - Grupo 05
 
-| RM | Nome | LinkedIn | GitHub | 
-| :-------: | :--: | :---------:|:-------: | 
-| RM367409 | Isabelle Dias Ribeiro Silva|[![Linkedin Badge](https://img.shields.io/badge/Linkedin-blue?style=flat-square&logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/drisabelles) | [![GitHub Badge](https://img.shields.io/badge/GitHub-111217?style=flat-square&logo=github&logoColor=white)](https://github.com/drisabelles)| 
-| RM367047 | Mariana Ayumi Tamay | [![Linkedin Badge](https://img.shields.io/badge/Linkedin-blue?style=flat-square&logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/marianatamay) | [![GitHub Badge](https://img.shields.io/badge/GitHub-111217?style=flat-square&logo=github&logoColor=white)](https://github.com/Mariayumi)
+|    RM    |            Nome             |                                                                         LinkedIn                                                                          |                                                                   GitHub                                                                    |
+| :------: | :-------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------: |
+| RM367409 | Isabelle Dias Ribeiro Silva | [![Linkedin Badge](https://img.shields.io/badge/Linkedin-blue?style=flat-square&logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/drisabelles)  | [![GitHub Badge](https://img.shields.io/badge/GitHub-111217?style=flat-square&logo=github&logoColor=white)](https://github.com/drisabelles) |
+| RM367047 |     Mariana Ayumi Tamay     | [![Linkedin Badge](https://img.shields.io/badge/Linkedin-blue?style=flat-square&logo=Linkedin&logoColor=white)](https://www.linkedin.com/in/marianatamay) |  [![GitHub Badge](https://img.shields.io/badge/GitHub-111217?style=flat-square&logo=github&logoColor=white)](https://github.com/Mariayumi)  |
