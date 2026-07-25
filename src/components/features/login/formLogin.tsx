@@ -34,19 +34,19 @@ export default function FormLogin() {
       if (result.success) {
         notification.success({
           title: "Login realizado com sucesso!",
-          message: "Seja bem-vindo(a) de volta!",
+          description: "Seja bem-vindo(a) de volta!",
         });
       } else {
         notification.error({
           title: "Erro no login",
-          message: result.error || "E-mail ou senha incorretos.",
+          description: result.error || "E-mail ou senha incorretos.",
         });
       }
     } catch (err) {
       console.error("Erro no login:", err);
       notification.error({
         title: "Erro no login",
-        message: "Ocorreu um erro ao fazer o login. Tente novamente.",
+        description: "Ocorreu um erro ao fazer o login. Tente novamente.",
       });
     } finally {
       setLoading(false);
@@ -56,7 +56,9 @@ export default function FormLogin() {
   const onFinishFailed = (errorInfo: FormFinishFailedInfo) => {
     notification.error({
       title: "Erro no login",
-      message: errorInfo.errorFields.map((f) => f.errors.join(", ")).join("; "),
+      description: errorInfo.errorFields
+        .map((f) => f.errors.join(", "))
+        .join("; "),
     });
   };
 

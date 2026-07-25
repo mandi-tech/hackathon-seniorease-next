@@ -116,6 +116,15 @@ export default function DadosTarefa() {
 
       if (error) throw error;
       recarregarDados();
+
+      if (preferences?.visual_feedback) {
+        notification.success({
+          title: "Status atualizado",
+          description: !isCompletedAtual
+            ? "A etapa foi concluída com sucesso."
+            : "A etapa foi marcada como pendente.",
+        });
+      }
     } catch (err) {
       console.error("Erro ao alterar status do passo:", err);
       notification.error({
@@ -135,6 +144,15 @@ export default function DadosTarefa() {
 
       if (error) throw error;
       recarregarDados();
+
+      if (preferences?.visual_feedback) {
+        notification.success({
+          title: "Status atualizado",
+          description: !isCompletedAtual
+            ? "A tarefa foi concluída com sucesso."
+            : "A tarefa foi marcada como pendente.",
+        });
+      }
     } catch (err) {
       console.error("Erro ao alterar status da tarefa:", err);
       notification.error({

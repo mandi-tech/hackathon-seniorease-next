@@ -179,7 +179,7 @@ export default function ModalEtapa({
 
       notification.success({
         title: isModoEdicao ? "Etapa atualizada!" : "Etapa adicionada!",
-        message: isModoEdicao
+        description: isModoEdicao
           ? "A etapa foi editada com sucesso."
           : "A nova etapa foi inserida na tarefa.",
       });
@@ -199,7 +199,7 @@ export default function ModalEtapa({
 
       notification.error({
         title: "Erro ao salvar",
-        message: errorMessage,
+        description: errorMessage,
       });
     } finally {
       setLoading(false);
