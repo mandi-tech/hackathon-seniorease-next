@@ -112,7 +112,9 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
               <Spin size="large" />
             </div>
           ) : (
-            <div className="space-y-3">
+            <div
+              className={`${preferences?.high_element_spacing ? "space-y-8" : "space-y-4"}`}
+            >
               {tasks.length > 0 ? (
                 tasks.map((tarefa) => {
                   const statusInfo = obterStatusInfo(tarefa);

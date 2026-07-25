@@ -39,6 +39,18 @@ Para cada versão lançada, categorize as alterações nos seguintes tópicos:
 
 ---
 
+## [v1.2.1] - 2026-07-24
+
+### Modificado
+
+- Atualização da documentação do projeto
+
+### Corrigido
+
+- Ajustes de layout e mais padronização de preferencias
+
+---
+
 ## [v1.2.0] - 2026-07-22
 
 ### Adicionado
