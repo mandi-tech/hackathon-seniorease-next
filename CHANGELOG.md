@@ -39,6 +39,20 @@ Para cada versão lançada, categorize as alterações nos seguintes tópicos:
 
 ---
 
+## [v1.2.2] - 2026-07-25
+
+### Adicionado
+
+- Condição para mostrar notificação se as preferencias exigirem feedback visual
+  reforçado
+
+### Corrigido
+
+- Correção do fuso horário que causava erros de busca das tarefas na
+  listaTarefas
+
+---
+
 ## [v1.2.1] - 2026-07-24
 
 ### Modificado
