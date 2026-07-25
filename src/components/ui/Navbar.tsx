@@ -44,7 +44,7 @@ export default function Navbar() {
             <Avatar
               style={{
                 backgroundColor: "var(--theme-primaria)",
-                color: "#fff",
+                color: "var(--theme-fundo)",
               }}
             >
               {getInitials(profile?.name || user?.email)}

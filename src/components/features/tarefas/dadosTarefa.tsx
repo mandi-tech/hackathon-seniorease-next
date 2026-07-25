@@ -249,7 +249,9 @@ export default function DadosTarefa() {
           </div>
 
           {/* Botões de Ação (Editar e Excluir de acordo com a visualização) */}
-          <div className="flex items-center gap-2">
+          <div
+            className={`flex items-center ${preferences?.high_element_spacing ? "gap-8" : "gap-2"}`}
+          >
             {visualizandoEtapa && subtarefaAtual ? (
               <>
                 <ModalEtapa
@@ -344,7 +346,7 @@ export default function DadosTarefa() {
                     subtarefaAtual.is_completed,
                   )
                 }
-                className="text-paragrafo!"
+                className={`text-paragrafo! ${subtarefaAtual.is_completed ? "text-alerta!" : "text-fundo! bg-sucesso!"}`}
               >
                 {subtarefaAtual.is_completed
                   ? "Marcar como Pendente"
@@ -367,7 +369,7 @@ export default function DadosTarefa() {
               onClick={() =>
                 handleAlternarCheckboxTarefaPai(tarefaPai.is_completed)
               }
-              className="text-paragrafo!"
+              className={`text-paragrafo! ${tarefaPai.is_completed ? "text-alerta!" : "text-fundo! bg-sucesso!"}`}
             >
               {tarefaPai.is_completed
                 ? "Marcar como Pendente"
@@ -378,13 +380,15 @@ export default function DadosTarefa() {
 
         {/* --- SEÇÃO DE ARQUIVOS VINCULADOS --- */}
         <div className="space-y-3 pt-2">
-          <h2 className="text-titulo3 font-semibold text-secundaria flex items-center gap-2 m-0">
+          <h2 className="text-titulo3 font-semibold text-secundaria flex items-center gap-2 mb-2">
             <PaperClipOutlined className="text-primaria" />
             Arquivos Anexados ({arquivosExibicao.length})
           </h2>
 
           {arquivosExibicao.length > 0 ? (
-            <div className="flex flex-wrap gap-3">
+            <div
+              className={`flex flex-wrap ${preferences?.high_element_spacing ? "gap-5" : "gap-3"}`}
+            >
               {arquivosExibicao.map((arquivo) => {
                 const url = obterUrlArquivo(arquivo.file_path);
                 return (
@@ -433,7 +437,9 @@ export default function DadosTarefa() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div
+              className={`${preferences?.high_element_spacing ? "space-y-8" : "space-y-4"}`}
+            >
               {subtarefas.length > 0 ? (
                 subtarefas.map((step, index) => (
                   <div
@@ -479,7 +485,8 @@ export default function DadosTarefa() {
                         </Checkbox>
                       ) : (
                         <Button
-                          size="medium"
+                          size="large"
+                          type={step.is_completed ? "default" : "primary"}
                           onClick={() =>
                             handleAlternarCheckboxStep(
                               step.id,
@@ -487,7 +494,9 @@ export default function DadosTarefa() {
                             )
                           }
                           className={`text-paragrafo! ${
-                            step.is_completed ? "text-alerta!" : "text-sucesso!"
+                            step.is_completed
+                              ? "text-alerta! border-alerta!"
+                              : "text-fundo! bg-sucesso!"
                           }`}
                         >
                           {step.is_completed
