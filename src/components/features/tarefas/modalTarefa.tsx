@@ -239,7 +239,7 @@ export default function ModalTarefa({
 
       notification.success({
         title: isModoEdicao ? "Tarefa atualizada!" : "Tarefa criada!",
-        message: isModoEdicao
+        description: isModoEdicao
           ? "A tarefa foi editada com sucesso."
           : "A nova tarefa foi salva com sucesso.",
       });
@@ -261,7 +261,7 @@ export default function ModalTarefa({
 
       notification.error({
         title: "Erro ao salvar",
-        message: errorMessage,
+        description: errorMessage,
       });
     } finally {
       setLoading(false);

@@ -65,7 +65,7 @@ export default function Calendario({ className }: iCalendarioProps) {
         if (error) {
           notification.error({
             title: "Erro ao carregar calendário",
-            message: "Não foi possível carregar as tarefas do mês.",
+            description: "Não foi possível carregar as tarefas do mês.",
           });
         } else {
           setTasks((data as iTask[]) || []);
