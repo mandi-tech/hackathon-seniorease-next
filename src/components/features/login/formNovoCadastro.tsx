@@ -28,20 +28,21 @@ export default function FormNovoCadastro() {
       if (result.success) {
         notification.success({
           title: "Cadastro realizado com sucesso!",
-          message: "Faça seu login.",
+          description: "Faça seu login.",
         });
         router.push("/login");
       } else {
         notification.error({
           title: "Erro no cadastro",
-          message: result.error || "Ocorreu um erro ao realizar o cadastro.",
+          description:
+            result.error || "Ocorreu um erro ao realizar o cadastro.",
         });
       }
     } catch (err) {
       console.error("Erro no cadastro:", err);
       notification.error({
         title: "Erro no cadastro",
-        message: "Ocorreu um erro ao criar a conta. Tente novamente.",
+        description: "Ocorreu um erro ao criar a conta. Tente novamente.",
       });
     } finally {
       setLoading(false);
