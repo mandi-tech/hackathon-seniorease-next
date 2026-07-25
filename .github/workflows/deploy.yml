@@ -89,15 +89,23 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "🚀 Atualizando container na AWS EC2..."
-            docker stop seniorease || true
-            docker rm seniorease || true
+
+            # Para e remove qualquer container com o nome 'seniorease' ou 'seniorease-app'
+            docker stop seniorease seniorease-app || true
+            docker rm seniorease seniorease-app || true
+
+            # Garante que containers parados que usavam a porta fiquem limpos
+            docker container prune -f
+
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/seniorease-web:latest
+
             docker run -d \
               --name seniorease \
               -p 80:3000 \
               --memory="750m" \
               --restart always \
               ${{ secrets.DOCKERHUB_USERNAME }}/seniorease-web:latest
+
             docker image prune -f
             echo "✅ Container rodando com a nova versão!"
 

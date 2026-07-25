@@ -60,8 +60,8 @@ export default function ListaTarefas({ className }: iListaTarefasProps) {
 
       setLoading(true);
       try {
-        const inicioDia = `${dataAlvoStr}T00:00:00`;
-        const fimDia = `${dataAlvoStr}T23:59:59`;
+        const inicioDia = dayjs(dataAlvoStr).startOf("day").toISOString();
+        const fimDia = dayjs(dataAlvoStr).endOf("day").toISOString();
 
         const { data, error } = await supabase
           .from("tasks")
