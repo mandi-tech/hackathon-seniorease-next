@@ -19,6 +19,7 @@ import { createClient } from "@/src/libs/supabase/client";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { iFileAttachment, iMainTask } from "@/src/libs/types/iTarefa";
 import { Pencil, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export interface iModalTarefaProps {
   tipo: "tarefa" | "subtarefa";
@@ -54,6 +55,7 @@ export default function ModalTarefa({
   className,
 }: iModalTarefaProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [categorias, setCategorias] = useState<iCategoriaOption[]>([]);
   const [form] = Form.useForm<FormTaskValues>();
@@ -136,7 +138,9 @@ export default function ModalTarefa({
       const dataBase = values.due_date.format("YYYY-MM-DD");
       const horaBase = values.hora.format("HH:mm");
       const stringDataHoraCompleta = `${dataBase}T${horaBase}:00`;
-      const due_date_formatado = dayjs(stringDataHoraCompleta).toISOString();
+      const due_date_formatado = dayjs(stringDataHoraCompleta).format(
+        "YYYY-MM-DDTHH:mm:ssZ",
+      );
 
       let targetTaskId = dadosEdicao?.id;
 
@@ -242,6 +246,8 @@ export default function ModalTarefa({
 
       form.resetFields();
       handleSetOpen(false);
+
+      router.refresh();
 
       if (onSuccess) {
         onSuccess();
